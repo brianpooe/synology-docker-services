@@ -1,4 +1,3 @@
-version: "3"
 services:
   gluetun:
     image: qmcgaw/gluetun
@@ -20,7 +19,7 @@ services:
       - 8989:8989 # Sonarr
       - 9696:9696 # Prowlarr
     volumes:
-      - /home/ubuntu/docker/arr-stack/gluetun:/gluetun
+      - ${ARR_STACK_PATH}/gluetun:/gluetun
     environment:
       # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
       - VPN_SERVICE_PROVIDER=nordvpn
@@ -29,7 +28,7 @@ services:
       # - OPENVPN_USER=
       # - OPENVPN_PASSWORD=
       # Wireguard:
-      - WIREGUARD_PRIVATE_KEY=<YOUR_PRIVATE_KEY> # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/nordvpn.md#obtain-your-wireguard-private-key
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY} # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/nordvpn.md#obtain-your-wireguard-private-key
       - WIREGUARD_ADDRESSES=10.5.0.2/32
       # Timezone for accurate log times
       - TZ=Africa/Johannesburg
@@ -47,15 +46,10 @@ services:
       - TZ=Africa/Johannesburg
       - DELUGE_LOGLEVEL=error #optional
     volumes:
-      - /home/ubuntu/docker/arr-stack/deluge/config:/config
-      - /home/ubuntu/docker/arr-stack/deluge/downloads:/downloads
+      - ${ARR_STACK_PATH}/deluge/config:/config
+      - ${ARR_STACK_PATH}/deluge/downloads:/downloads
     depends_on:
       - gluetun
-    ports:
-      - 8112:8112
-      - 6881:6881
-      - 6881:6881/udp
-      - 58846:58846 #optional
     restart: always
 
   sonarr:
@@ -67,24 +61,23 @@ services:
       - PGID=1000
       - TZ=Africa/Johannesburg
     volumes:
-      - /home/ubuntu/docker/arr-stack/sonarr/data:/config
-      - /home/ubuntu/docker/arr-stack/sonarr/tvseries:/tv #optional
-      - /home/ubuntu/docker/arr-stack/sonarr/downloadclient-downloads:/downloads #optional
+      - ${ARR_STACK_PATH}/sonarr/data:/config
+      - ${ARR_STACK_PATH}/sonarr/tvshows:/tv #optional
+      - ${ARR_STACK_PATH}/sonarr/downloadclient-downloads:/downloads #optional
     restart: unless-stopped
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
+    network_mode: "service:gluetun"
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Africa/Johannesburg
     volumes:
-      - /home/ubuntu/docker/arr-stack/radarr/data:/config
-      - /home/ubuntu/docker/arr-stack/radarr/movies:/movies #optional
-      - /home/ubuntu/docker/arr-stack/radarr/download-client-downloads:/downloads #optional
-    ports:
-      - 7878:7878
+      - ${ARR_STACK_PATH}/radarr/data:/config
+      - ${ARR_STACK_PATH}/radarr/movies:/movies #optional
+      - ${ARR_STACK_PATH}/radarr/download-client-downloads:/downloads #optional
     restart: unless-stopped
 
   prowlarr:
@@ -96,5 +89,5 @@ services:
       - PGID=1000
       - TZ=Africa/Johannesburg
     volumes:
-      - /home/ubuntu/docker/arr-stack/prowlarr/data:/config
+      - ${ARR_STACK_PATH}/prowlarr/data:/config
     restart: unless-stopped
