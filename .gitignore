@@ -219,5 +219,5 @@ fabric.properties
 
 !.idea/codeStyles
 !.idea/runConfigurations
-
+.env
 # End of https://www.toptal.com/developers/gitignore/api/webstorm+all,webstorm,linux,macos
