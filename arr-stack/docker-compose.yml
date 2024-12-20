@@ -16,7 +16,7 @@ services:
       - 8989:8989 # Sonarr
       - 9696:9696 # Prowlarr
       - 6767:6767 # Bazarr
-      - 8082:8082 # Sabnzbd
+      - 8282:8282 # Sabnzbd
       - 32400:32400 # Plex
       - 5055:5055 # Overseerr
     volumes:
