@@ -19,6 +19,7 @@ services:
       - 8282:8282 # Sabnzbd
       - 32400:32400 # Plex
       - 5055:5055 # Overseerr
+      - 8191:8191 # Flaresolverr
     volumes:
       - ${DOCKERCONFDIR}/gluetun:/gluetun
     environment:
@@ -36,7 +37,7 @@ services:
       # Server list updater
       # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
       - UPDATER_PERIOD=24h
-        
+
   flaresolverr:
     container_name: flaresolverr
     image: flaresolverr/flaresolverr:latest
@@ -45,6 +46,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - LOG_LEVEL=info
     labels:
       - org.hotio.pullio.update=${PULLIO_UPDATE}
     restart: unless-stopped
