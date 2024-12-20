@@ -36,6 +36,18 @@ services:
       # Server list updater
       # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
       - UPDATER_PERIOD=24h
+        
+  flaresolverr:
+    container_name: flaresolverr
+    image: flaresolverr/flaresolverr:latest
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
+    restart: unless-stopped
 
   radarr:
     container_name: radarr
@@ -147,6 +159,7 @@ services:
     depends_on:
       - gluetun
 
+# https://github.com/AmIBeingObtuse/Youtubestacks/blob/9a919079b87e17a00cf5407859c1c7dae6b47a4e/Sabnzbd%20Extension%20blacklist
   sabnzbd:
     container_name: sabnzbd
     image: ghcr.io/hotio/sabnzbd
