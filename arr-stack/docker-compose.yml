@@ -164,7 +164,7 @@ services:
       - UMASK=002
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/sabnzbd/config:/config
+      - ${DOCKERCONFDIR}/sabnzbd:/config
       - ${DOCKERCONFDIR}/usenet:/data/usenet:rw
 
   plex:
