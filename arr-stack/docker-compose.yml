@@ -165,7 +165,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${DOCKERCONFDIR}/sabnzbd:/config
-      - ${DOCKERCONFDIR}/usenet:/data/usenet:rw
+      - ${DOCKERSTORAGEDIR}/usenet:/data/usenet:rw
 
   plex:
     container_name: plex
