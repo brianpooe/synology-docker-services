@@ -40,6 +40,7 @@ services:
   radarr:
     container_name: radarr
     image: ghcr.io/hotio/radarr:latest
+    network_mode: "service:gluetun"
     logging:
       driver: json-file
       options:
@@ -61,6 +62,7 @@ services:
   sonarr:
     container_name: sonarr
     image: ghcr.io/hotio/sonarr
+    network_mode: "service:gluetun"
     logging:
       driver: json-file
       options:
@@ -82,6 +84,7 @@ services:
   bazarr:
     container_name: bazarr
     image: ghcr.io/hotio/bazarr:nightly
+    network_mode: "service:gluetun"
     logging:
       driver: json-file
       options:
@@ -103,6 +106,7 @@ services:
   prowlarr:
     container_name: prowlarr
     image: ghcr.io/hotio/prowlarr
+    network_mode: "service:gluetun"
     logging:
       driver: json-file
       options:
@@ -123,12 +127,13 @@ services:
   qbittorrent:
     container_name: qbittorrent
     image: ghcr.io/hotio/qbittorrent
+    network_mode: "service:gluetun"
+    restart: always
     logging:
       driver: json-file
       options:
         max-file: ${DOCKERLOGGING_MAXFILE}
         max-size: ${DOCKERLOGGING_MAXSIZE}
-    network_mode: "service:gluetun"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -145,6 +150,7 @@ services:
   sabnzbd:
     container_name: sabnzbd
     image: ghcr.io/hotio/sabnzbd
+    network_mode: "service:gluetun"
     restart: unless-stopped
     logging:
       driver: json-file
@@ -164,6 +170,7 @@ services:
   plex:
     container_name: plex
     image: ghcr.io/hotio/plex
+    network_mode: "service:gluetun"
     restart: unless-stopped
     logging:
       driver: json-file
@@ -192,6 +199,7 @@ services:
   overseerr:
     container_name: overseerr
     image: ghcr.io/hotio/overseerr
+    network_mode: "service:gluetun"
     logging:
       driver: json-file
       options:
