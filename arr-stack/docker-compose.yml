@@ -11,15 +11,16 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - 6881:6881 # deluge - Inbound torrent traffic
-      - 6881:6881/udp # deluge - Inbound torrent traffic
-      - 8112:8112 # deluge - Port for webui
-      - 58846:58846 # deluge - Default deluged port for thin client connectivity
+      - 8181:8080 # qbitorrent - Inbound torrent traffic
       - 7878:7878 # Radarr
       - 8989:8989 # Sonarr
       - 9696:9696 # Prowlarr
+      - 6767:6767 # Bazarr
+      - 8080:8080 # Sabnzbd
+      - 32400:32400 # Plex
+      - 5055:5055 # Overseerr
     volumes:
-      - ${ARR_STACK_PATH}/gluetun:/gluetun
+      - ${DOCKERCONFDIR}/gluetun:/gluetun
     environment:
       # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
       - VPN_SERVICE_PROVIDER=nordvpn
@@ -31,63 +32,177 @@ services:
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY} # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/nordvpn.md#obtain-your-wireguard-private-key
       - WIREGUARD_ADDRESSES=10.5.0.2/32
       # Timezone for accurate log times
-      - TZ=Africa/Johannesburg
+      - TZ=${TZ}
       # Server list updater
       # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
       - UPDATER_PERIOD=24h
 
-  deluge:
-    image: lscr.io/linuxserver/deluge:latest
-    container_name: deluge
-    network_mode: "service:gluetun"
+  radarr:
+    container_name: radarr
+    image: ghcr.io/hotio/radarr:latest
+    logging:
+      driver: json-file
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
+    restart: unless-stopped
+    labels:
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Africa/Johannesburg
-      - DELUGE_LOGLEVEL=error #optional
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
     volumes:
-      - ${ARR_STACK_PATH}/deluge/config:/config
-      - ${ARR_STACK_PATH}/deluge/downloads:/downloads
-    depends_on:
-      - gluetun
-    restart: always
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/radarr:/config
+      - ${DOCKERSTORAGEDIR}:/data
 
   sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
-    network_mode: "service:gluetun"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Africa/Johannesburg
-    volumes:
-      - ${ARR_STACK_PATH}/sonarr/data:/config
-      - ${ARR_STACK_PATH}/sonarr/tvshows:/tv #optional
-      - ${ARR_STACK_PATH}/sonarr/downloadclient-downloads:/downloads #optional
+    image: ghcr.io/hotio/sonarr
+    logging:
+      driver: json-file
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
     restart: unless-stopped
+    labels:
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/sonarr:/config
+      - ${DOCKERSTORAGEDIR}:/data
 
-  radarr:
-    image: lscr.io/linuxserver/radarr:latest
-    container_name: radarr
-    network_mode: "service:gluetun"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Africa/Johannesburg
-    volumes:
-      - ${ARR_STACK_PATH}/radarr/data:/config
-      - ${ARR_STACK_PATH}/radarr/movies:/movies #optional
-      - ${ARR_STACK_PATH}/radarr/download-client-downloads:/downloads #optional
+  bazarr:
+    container_name: bazarr
+    image: ghcr.io/hotio/bazarr:nightly
+    logging:
+      driver: json-file
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
     restart: unless-stopped
+    labels:
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/bazarr:/config
+      - ${DOCKERSTORAGEDIR}/media:/data/media
 
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
+    image: ghcr.io/hotio/prowlarr
+    logging:
+      driver: json-file
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
+    restart: unless-stopped
+    labels:
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/prowlarr:/config:rw
+
+  qbittorrent:
+    container_name: qbittorrent
+    image: ghcr.io/hotio/qbittorrent
+    logging:
+      driver: json-file
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
     network_mode: "service:gluetun"
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Africa/Johannesburg
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORTS=8080/tcp,8080/udp
+      - UMASK=002
     volumes:
-      - ${ARR_STACK_PATH}/prowlarr/data:/config
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/qbittorrent:/config
+      - ${DOCKERSTORAGEDIR}/torrents:/data/torrents:rw
+    depends_on:
+      - gluetun
+
+  sabnzbd:
+    container_name: sabnzbd
+    image: ghcr.io/hotio/sabnzbd
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/sabnzbd/config:/config
+      - ${DOCKERCONFDIR}/usenet:/data/usenet:rw
+
+  plex:
+    container_name: plex
+    image: ghcr.io/hotio/plex
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
+    labels:
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - PLEX_CLAIM_TOKEN=${PLEX_CLAIM_TOKEN}
+      - PLEX_ADVERTISE_URL=${PLEX_ADVERTISE_URL}
+      - PLEX_NO_AUTH_NETWORKS=${PLEX_NO_AUTH_NETWORKS}
+      - PLEX_BETA_INSTALL=false
+      - PLEX_PURGE_CODECS=false
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/plex:/config
+      - ${DOCKERSTORAGEDIR}:/data
+    devices: # optional: if you have a Syno with an Intel CPU and want hardware transcoding
+      - /dev/dri:/dev/dri
+
+  overseerr:
+    container_name: overseerr
+    image: ghcr.io/hotio/overseerr
+    logging:
+      driver: json-file
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/overseerr:/config
+      - ${DOCKERSTORAGEDIR}/media:/data/media
