@@ -11,3 +11,4 @@ sudo docker exec -it qbittorrent curl ipconfig.io
 sudo docker exec -it sabnzbd curl ipconfig.io
 sudo docker exec -it plex curl ipconfig.io
 sudo docker exec -it overseerr curl ipconfig.io
+sudo docker exec -it flaresolverr curl ipconfig.io
