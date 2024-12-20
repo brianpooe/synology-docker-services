@@ -1,0 +1,13 @@
+## Check if VPN is set up correctly on all containers.
+
+sudo docker exec -it gluetun wget ipconfig.io
+sudo docker exec -it gluetun cat index.html
+
+sudo docker exec -it radarr curl ipconfig.io
+sudo docker exec -it sonarr curl ipconfig.io
+sudo docker exec -it bazarr curl ipconfig.io
+sudo docker exec -it prowlarr curl ipconfig.io
+sudo docker exec -it qbittorrent curl ipconfig.io
+sudo docker exec -it sabnzbd curl ipconfig.io
+sudo docker exec -it plex curl ipconfig.io
+sudo docker exec -it overseerr curl ipconfig.io
