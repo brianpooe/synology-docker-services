@@ -17,9 +17,9 @@ services:
       - 9696:9696 # Prowlarr
       - 6767:6767 # Bazarr
       - 8282:8282 # Sabnzbd
-      - 32400:32400 # Plex
-      - 5055:5055 # Overseerr
+      - 5055:5055 # Jellyseerr
       - 8191:8191 # Flaresolverr
+      - 8096:8096/tcp #Emby
     volumes:
       - ${DOCKERCONFDIR}/gluetun:/gluetun
     environment:
@@ -183,9 +183,9 @@ services:
       - ${DOCKERCONFDIR}/sabnzbd:/config
       - ${DOCKERSTORAGEDIR}/usenet:/data/usenet:rw
 
-  plex:
-    container_name: plex
-    image: ghcr.io/hotio/plex
+  emby:
+    container_name: emby
+    image: lscr.io/linuxserver/emby
     network_mode: "service:gluetun"
     restart: unless-stopped
     logging:
@@ -199,34 +199,31 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - PLEX_CLAIM_TOKEN=${PLEX_CLAIM_TOKEN}
-      - PLEX_ADVERTISE_URL=${PLEX_ADVERTISE_URL}
-      - PLEX_NO_AUTH_NETWORKS=${PLEX_NO_AUTH_NETWORKS}
-      - PLEX_BETA_INSTALL=false
-      - PLEX_PURGE_CODECS=false
-      - UMASK=002
+      - UMASK_SET=022
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/plex:/config
-      - ${DOCKERSTORAGEDIR}:/data
+      - ${DOCKERCONFDIR}/emby:/config:rw
+      - ${DOCKERSTORAGEDIR}/media:/data/media:rw
     devices: # optional: if you have a Syno with an Intel CPU and want hardware transcoding
-      - /dev/dri:/dev/dri
+      - /dev/dri:/dev/dri  # optional: if you have a Syno with an Intel CPU and want hardware transcoding
 
-  overseerr:
-    container_name: overseerr
-    image: ghcr.io/hotio/overseerr
+  jellyseerr:
+    container_name: jellyseerr
+    image: hotio/jellyseerr
     network_mode: "service:gluetun"
+    restart: unless-stopped
     logging:
       driver: json-file
       options:
         max-file: ${DOCKERLOGGING_MAXFILE}
         max-size: ${DOCKERLOGGING_MAXSIZE}
+    labels:
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - UMASK=002
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/overseerr:/config
+      - ${DOCKERCONFDIR}/jellyseerr:/config
       - ${DOCKERSTORAGEDIR}/media:/data/media
