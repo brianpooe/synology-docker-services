@@ -218,7 +218,7 @@ services:
         max-file: ${DOCKERLOGGING_MAXFILE}
         max-size: ${DOCKERLOGGING_MAXSIZE}
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update=${PULLIO_UPDATE}vi
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -227,3 +227,16 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${DOCKERCONFDIR}/jellyseerr:/config
       - ${DOCKERSTORAGEDIR}/media:/data/media
+
+  recyclarr:
+    container_name: recyclarr
+    image: ghcr.io/recyclarr/recyclarr
+    network_mode: "service:gluetun"
+    user: ${PUID}:${PGID}
+    labels:
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/recyclarr:/config
+    environment:
+      - TZ=${TZ}
