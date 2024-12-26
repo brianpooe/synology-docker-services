@@ -218,7 +218,7 @@ services:
         max-file: ${DOCKERLOGGING_MAXFILE}
         max-size: ${DOCKERLOGGING_MAXSIZE}
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}vi
+      - org.hotio.pullio.update=${PULLIO_UPDATE}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
