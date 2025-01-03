@@ -11,8 +11,7 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - 8080:8080 # qbittorrent - web interface
-      - 6881:6881 # qbittorrent - torrent port
+      - 8080:8080 # qbittorrent - Inbound torrent traffic
       - 7878:7878 # Radarr
       - 8989:8989 # Sonarr
       - 9696:9696 # Prowlarr
@@ -21,20 +20,16 @@ services:
       - 5055:5055 # Jellyseerr
       - 8191:8191 # Flaresolverr
       - 8096:8096/tcp #Emby
+      - 8000:8000/tcp #Gluetun
     volumes:
-      - ${DOCKERCONFDIR}/gluetun:/gluetun
+      - {{DOCKERCONFDIR}}/gluetun:/gluetun
     environment:
-      # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
-      - VPN_SERVICE_PROVIDER=nordvpn
+      - VPN_SERVICE_PROVIDER=airvpn #https://www.youtube.com/watch?v=SQEqsaKN-Go&t=271s
       - VPN_TYPE=wireguard
-      # OpenVPN:
-      # - OPENVPN_USER=
-      # - OPENVPN_PASSWORD=
-      # Wireguard:
-      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY} # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/nordvpn.md#obtain-your-wireguard-private-key
-      - WIREGUARD_ADDRESSES=10.5.0.2/32
-      # Timezone for accurate log times
-      - TZ=${TZ}
+      - WIREGUARD_PRIVATE_KEY={{WIREGUARD_PRIVATE_KEY}}
+      - WIREGUARD_PRESHARED_KEY={{WIREGUARD_PRESHARED_KEY}}
+      - WIREGUARD_ADDRESSES={{WIREGUARD_ADDRESSES}}
+      - FIREWALL_VPN_INPUT_PORTS={{FIREWALL_VPN_INPUT_PORTS}}
       # Server list updater
       # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
       - UPDATER_PERIOD=24h
@@ -44,12 +39,12 @@ services:
     image: flaresolverr/flaresolverr:latest
     network_mode: "service:gluetun"
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
       - LOG_LEVEL=info
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update={{PULLIO_UPDATE}}
     restart: unless-stopped
 
   radarr:
@@ -59,22 +54,20 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: ${DOCKERLOGGING_MAXFILE}
-        max-size: ${DOCKERLOGGING_MAXSIZE}
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
     restart: unless-stopped
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update={{PULLIO_UPDATE}}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
       - UMASK=002
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/radarr:/config
-      - ${DOCKERSTORAGEDIR}:/data
-    ports:
-      - 7878:7878
+      - {{DOCKERCONFDIR}}/radarr:/config
+      - {{DOCKERSTORAGEDIR}}:/data
 
   sonarr:
     container_name: sonarr
@@ -83,22 +76,20 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: ${DOCKERLOGGING_MAXFILE}
-        max-size: ${DOCKERLOGGING_MAXSIZE}
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
     restart: unless-stopped
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update={{PULLIO_UPDATE}}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
       - UMASK=002
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/sonarr:/config
-      - ${DOCKERSTORAGEDIR}:/data
-    ports:
-      - 8989:8989
+      - {{DOCKERCONFDIR}}/sonarr:/config
+      - {{DOCKERSTORAGEDIR}}:/data
 
   bazarr:
     container_name: bazarr
@@ -107,20 +98,20 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: ${DOCKERLOGGING_MAXFILE}
-        max-size: ${DOCKERLOGGING_MAXSIZE}
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
     restart: unless-stopped
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update={{PULLIO_UPDATE}}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
       - UMASK=002
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/bazarr:/config
-      - ${DOCKERSTORAGEDIR}/media:/data/media
+      - {{DOCKERCONFDIR}}/bazarr:/config
+      - {{DOCKERSTORAGEDIR}}/media:/data/media
 
   prowlarr:
     container_name: prowlarr
@@ -129,19 +120,19 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: ${DOCKERLOGGING_MAXFILE}
-        max-size: ${DOCKERLOGGING_MAXSIZE}
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
     restart: unless-stopped
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update={{PULLIO_UPDATE}}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
       - UMASK=002
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/prowlarr:/config:rw
+      - {{DOCKERCONFDIR}}/prowlarr:/config:rw
 
   qbittorrent:
     container_name: qbittorrent
@@ -151,22 +142,22 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: ${DOCKERLOGGING_MAXFILE}
-        max-size: ${DOCKERLOGGING_MAXSIZE}
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
       - WEBUI_PORTS=8080/tcp,8080/udp
       - UMASK=002
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/qbittorrent:/config
-      - ${DOCKERSTORAGEDIR}/torrents:/data/torrents:rw
+      - {{DOCKERCONFDIR}}/qbittorrent:/config
+      - {{DOCKERSTORAGEDIR}}/torrents:/data/torrents:rw
     depends_on:
       - gluetun
 
-# https://github.com/AmIBeingObtuse/Youtubestacks/blob/9a919079b87e17a00cf5407859c1c7dae6b47a4e/Sabnzbd%20Extension%20blacklist
+  # https://github.com/AmIBeingObtuse/Youtubestacks/blob/9a919079b87e17a00cf5407859c1c7dae6b47a4e/Sabnzbd%20Extension%20blacklist
   sabnzbd:
     container_name: sabnzbd
     image: ghcr.io/hotio/sabnzbd
@@ -175,18 +166,18 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: ${DOCKERLOGGING_MAXFILE}
-        max-size: ${DOCKERLOGGING_MAXSIZE}
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
       - WEBUI_PORTS=8282/tcp,8282/udp
       - UMASK=002
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/sabnzbd:/config
-      - ${DOCKERSTORAGEDIR}/usenet:/data/usenet:rw
+      - {{DOCKERCONFDIR}}/sabnzbd:/config
+      - {{DOCKERSTORAGEDIR}}/usenet:/data/usenet:rw
 
   emby:
     container_name: emby
@@ -196,19 +187,19 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: ${DOCKERLOGGING_MAXFILE}
-        max-size: ${DOCKERLOGGING_MAXSIZE}
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update={{PULLIO_UPDATE}}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
       - UMASK_SET=022
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/emby:/config:rw
-      - ${DOCKERSTORAGEDIR}/media:/data/media:rw
+      - {{DOCKERCONFDIR}}/emby:/config:rw
+      - {{DOCKERSTORAGEDIR}}/media:/data/media:rw
     devices: # optional: if you have a Syno with an Intel CPU and want hardware transcoding
       - /dev/dri:/dev/dri  # optional: if you have a Syno with an Intel CPU and want hardware transcoding
 
@@ -220,28 +211,28 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: ${DOCKERLOGGING_MAXFILE}
-        max-size: ${DOCKERLOGGING_MAXSIZE}
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update={{PULLIO_UPDATE}}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/jellyseerr:/config
-      - ${DOCKERSTORAGEDIR}/media:/data/media
+      - {{DOCKERCONFDIR}}/jellyseerr:/config
+      - {{DOCKERSTORAGEDIR}}/media:/data/media
 
   recyclarr:
     container_name: recyclarr
     image: ghcr.io/recyclarr/recyclarr
     network_mode: "service:gluetun"
-    user: ${PUID}:${PGID}
+    user: {{PUID}}:{{PGID}}
     labels:
-      - org.hotio.pullio.update=${PULLIO_UPDATE}
+      - org.hotio.pullio.update={{PULLIO_UPDATE}}
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${DOCKERCONFDIR}/recyclarr:/config
+      - {{DOCKERCONFDIR}}/recyclarr:/config
     environment:
-      - TZ=${TZ}
+      - TZ={{TZ}}
