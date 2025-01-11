@@ -46,12 +46,12 @@
         encode gzip
     }
 
-    # Running in proxmox
+    # Running on proxmox
     @pdf host pdf.home.brianpooe.com
     handle @pdf {
         reverse_proxy 192.168.10.12:8080
     }
-    # Running in proxmox
+    # Running on proxmox
     # https://github.com/paperless-ngx/paperless-ngx/wiki/Using-a-Reverse-Proxy-with-Paperless-ngx#nginx
     @paperless host paperless-ngx.home.brianpooe.com
     handle @paperless {
@@ -59,10 +59,40 @@
             header_down Referrer-Policy "strict-origin-when-cross-origin"
         }
     }
-    # Running in proxmox
+    # Running on proxmox
     @homepage host homepage.home.brianpooe.com
     handle @homepage {
         reverse_proxy 192.168.10.14:3000
+    }
+
+    # Running on proxmox
+    @uptimekuma host uptimekuma.home.brianpooe.com
+    handle @uptimekuma {
+        reverse_proxy 192.168.10.16:3001
+    }
+
+    # Running on proxmox
+    @minio host minio.home.brianpooe.com
+    handle @minio {
+        reverse_proxy 192.168.10.9:9001
+    }
+
+    # Running on proxmox
+    @minioapi host minio-api.home.brianpooe.com
+    handle @minioapi {
+        reverse_proxy 192.168.10.9:9000
+    }
+
+    # Running on proxmox
+    @plane host plane.home.brianpooe.com
+    handle @plane {
+        reverse_proxy 192.168.10.17:80
+    }
+
+    # Running on proxmox
+    @ntfy host ntfy.home.brianpooe.com
+    handle @ntfy {
+        reverse_proxy 192.168.10.6:80
     }
 
     # pihole running on a raspberry pi different vlan

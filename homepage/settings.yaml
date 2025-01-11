@@ -26,11 +26,11 @@ quicklaunch:
   provider: google # google, duckduckgo, bing, baidu, brave or custom
 
 layout:
-  Router & DNS:
+  Storage:
     header: true
     style: row
-    columns: 2
-  Hypervisor & Storage:
+    columns: 1
+  Hypervisor & DNS:
     header: true
     style: row
     columns: 2
