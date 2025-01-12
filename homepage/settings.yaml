@@ -5,7 +5,7 @@
 title: Luda's Homepage
 
 background:
-  image: https://images.pexels.com/photos/7509250/pexels-photo-7509250.jpeg?cs=srgb&dl=pexels-gra-wal-38714864-7509250.jpg&fm=jpg&w=6000&h=4000
+  image: http://minio.home.brianpooe.com/api/v1/download-shared-object/aHR0cDovLzEyNy4wLjAuMTo5MDAwL3dhbGxwYXBlcnMvcGV4ZWxzLWdyYS13YWwtMzg3MTQ4NjQtNzUwOTI1MC5qcGc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD0xVFYwQjhCNlFPSlBTMkEwM0xIVyUyRjIwMjUwMTEyJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDExMlQxOTI2MzNaJlgtQW16LUV4cGlyZXM9NDMxOTkmWC1BbXotU2VjdXJpdHktVG9rZW49ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmhZMk5sYzNOTFpYa2lPaUl4VkZZd1FqaENObEZQU2xCVE1rRXdNMHhJVnlJc0ltVjRjQ0k2TVRjek5qY3hPRFF3TVN3aWNHRnlaVzUwSWpvaWJXbHVhVzhpZlEuZExmenNkX0FPWC1Rb1d2bmRraFhXUDFpcDRXT29IS1JLVGRGWFdHeFllcDVvV2RMT0hNNWI1cnNkaEU0OEU4STJmeWNtNUNLTmEzcUJXSlB2TElDcWcmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnZlcnNpb25JZD1udWxsJlgtQW16LVNpZ25hdHVyZT03NDY2N2I2YWJmMDk0MzUyMDY3ZTBiOTM1YmVjN2FkZTQzYjQ0MzdlNWMwOTY2YjhhZDk1M2U0ZGIzYmRkMDk5
   blur: sm # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
   saturate: 50 # 0, 50, 100... see https://tailwindcss.com/docs/backdrop-saturate
   brightness: 50 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
@@ -26,11 +26,11 @@ quicklaunch:
   provider: google # google, duckduckgo, bing, baidu, brave or custom
 
 layout:
-  Storage:
+  Storage & DNS:
     header: true
     style: row
-    columns: 1
-  Hypervisor & DNS:
+    columns: 2
+  Hypervisor & Authentication:
     header: true
     style: row
     columns: 2
@@ -45,11 +45,11 @@ layout:
   Utilities:
     header: true
     style: row
-    columns: 2
+    columns: 3
   Other:
     header: true
     style: row
-    columns: 4
+    columns: 3
 
 hideVersion: true
 showStats: true

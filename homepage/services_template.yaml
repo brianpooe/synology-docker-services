@@ -3,56 +3,46 @@
 # https://gethomepage.dev/latest/configs/services
 # icons found here https://github.com/walkxcode/dashboard-icons
 
-- Router & DNS:
-    - pfsense:
-        icon: pfsense.svg
-        href: "{{HOMEPAGE_VAR_PFSENSE_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_PFSENSE_URL}}"
-        widget:
-          type: pfsense
-          url: "{{HOMEPAGE_VAR_PFSENSE_URL}}"
-          headers:
-            X-API-Key: "{{HOMEPAGE_VAR_PFSENSE_API_KEY}}"
-          wan: "{{HOMEPAGE_VAR_PFSENSE_WAN}}"
-          version: 2 # optional, defaults to 1 for api v1
-          fields: [ "load", "memory", "temp", "disk" ] # optional
-    - Pi-Hole:
-        icon: pi-hole.svg
-        href: "{{HOMEPAGE_VAR_PIHOLE_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_PIHOLE_URL}}"
-        widget:
-          type: pihole
-          url: "{{HOMEPAGE_VAR_PIHOLE_URL}}"
-          key: "{{HOMEPAGE_VAR_PIHOLE_API_KEY}}"
-
-- Hypervisor & Storage:
-    - Proxmox:
-        icon: proxmox.svg
-        href: "{{HOMEPAGE_VAR_PROXMOX_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_PROXMOX_URL}}"
-        widget:
-          type: proxmox
-          url: "{{HOMEPAGE_VAR_PROXMOX_URL}}"
-          username: "{{HOMEPAGE_VAR_PROXMOX_USERNAME}}"
-          password: "{{HOMEPAGE_VAR_PROXMOX_API_KEY}}"
-          node: pve
-
+- Storage & DNS:
     - SynologyNAS:
         icon: synology.svg
         href: "{{HOMEPAGE_VAR_SYNOLOGY_NAS_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_SYNOLOGY_NAS_URL}}"
         widget:
           type: diskstation
           url: "{{HOMEPAGE_VAR_SYNOLOGY_NAS_URL}}"
           username: "{{HOMEPAGE_VAR_SYNOLOGY_USERNAME}}"
           password: "{{HOMEPAGE_VAR_SYNOLOGY_PASSWORD}}"
           volume: "{{HOMEPAGE_VAR_SYNOLOGY_VOLUME}}"
+    - Pi-Hole:
+        icon: pi-hole.svg
+        href: "{{HOMEPAGE_VAR_PIHOLE_URL}}"
+        widget:
+          type: pihole
+          url: "{{HOMEPAGE_VAR_PIHOLE_URL}}"
+          key: "{{HOMEPAGE_VAR_PIHOLE_API_KEY}}"
+
+- Hypervisor & Authentication:
+    - Proxmox:
+        icon: proxmox.svg
+        href: "{{HOMEPAGE_VAR_PROXMOX_URL}}"
+        widget:
+          type: proxmox
+          url: "{{HOMEPAGE_VAR_PROXMOX_URL}}"
+          username: "{{HOMEPAGE_VAR_PROXMOX_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_PROXMOX_API_KEY}}"
+          node: pve
+    - Authentik:
+        icon: authentik.svg
+        href: "{{HOMEPAGE_VAR_AUTHENTIK_URL}}"
+        widget:
+          type: authentik
+          url: "{{HOMEPAGE_VAR_AUTHENTIK_URL}}"
+          key: "{{HOMEPAGE_VAR_AUTHENTIK_API_KEY}}"
 
 - Media:
     - Emby:
         icon: emby.svg
         href: "{{HOMEPAGE_VAR_EMBY_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_EMBY_URL}}"
         widget:
           type: emby
           url: "{{HOMEPAGE_VAR_EMBY_URL}}"
@@ -65,7 +55,6 @@
     - Jellyseerr:
         icon: jellyseerr.svg
         href: "{{HOMEPAGE_VAR_JELLYSEER_URL}}"
-        siteMonitor: {{HOMEPAGE_VAR_JELLYSEER_URL}}"
         widget:
           type: jellyseerr
           url: "{{HOMEPAGE_VAR_JELLYSEER_URL}}"
@@ -74,14 +63,12 @@
     - Gluetun:
         icon: gluetun.svg
         href: "{{HOMEPAGE_VAR_GLUETUN_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_GLUETUN_URL}}"
         widget:
           type: gluetun
           url: "{{HOMEPAGE_VAR_GLUETUN_URL}}"
     - Radarr:
         icon: radarr.svg
         href: "{{HOMEPAGE_VAR_RADARR_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_RADARR_URL}}"
         widget:
           type: radarr
           url: "{{HOMEPAGE_VAR_RADARR_URL}}"
@@ -90,7 +77,6 @@
     - Sonarr:
         icon: sonarr.svg
         href: "{{HOMEPAGE_VAR_SONARR_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_SONARR_URL}}"
         widget:
           type: sonarr
           url: "{{HOMEPAGE_VAR_SONARR_URL}}"
@@ -99,7 +85,6 @@
     - Prowlarr:
         icon: prowlarr.svg
         href: "{{HOMEPAGE_VAR_PROWLARR_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_PROWLARR_URL}}"
         widget:
           type: prowlarr
           url: "{{HOMEPAGE_VAR_PROWLARR_URL}}"
@@ -107,7 +92,6 @@
     - qBittorrent:
         icon: qbittorrent.svg
         href: "{{HOMEPAGE_VAR_QBITTORRENT_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_QBITTORRENT_URL}}"
         widget:
           type: qbittorrent
           url: "{{HOMEPAGE_VAR_QBITTORRENT_URL}}"
@@ -117,7 +101,6 @@
     - SABnzbd:
         icon: sabnzbd.svg
         href: "{{HOMEPAGE_VAR_SABNZBD_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_SABNZBD_URL}}"
         widget:
           type: sabnzbd
           url: "{{HOMEPAGE_VAR_SABNZBD_URL}}"
@@ -125,36 +108,39 @@
     - Bazarr:
         icon: bazarr.svg
         href: "{{HOMEPAGE_VAR_BAZARR_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_BAZARR_URL}}"
         widget:
           type: bazarr
           url: "{{HOMEPAGE_VAR_BAZARR_URL}}"
           key: "{{HOMEPAGE_VAR_BAZARR_API_KEY}}"
+
 - Utilities:
+    - Uptime Kuma:
+        icon: uptime-kuma.svg
+        href: "{{HOMEPAGE_VAR_UPTIME_KUMA_URL}}"
+        widget:
+          type: uptimekuma
+          url: "{{HOMEPAGE_VAR_UPTIME_KUMA_URL}}"
+          slug: "{{HOMEPAGE_VAR_UPTIME_KUMA_SLUG}}"
     - Paperless-ngx:
         icon: paperless-ngx.svg
         href: "{{HOMEPAGE_VAR_PAPERLESS_NGX_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_PAPERLESS_NGX_URL}}"
         widget:
           type: paperlessngx
           url: "{{HOMEPAGE_VAR_PAPERLESS_NGX_URL}}"
           key: "{{HOMEPAGE_VAR_PAPERLESS_NGX_TOKEN}}"
     - Caddy:
         icon: caddy.png
-        siteMonitor: "{{HOMEPAGE_VAR_CADDY_URL}}"
         widget:
           type: caddy
           url: "{{HOMEPAGE_VAR_CADDY_URL}}"
+
 - Other:
     - Stirling-pdf:
         icon: stirling-pdf.svg
         href: "{{HOMEPAGE_VAR_STIRLING_PDF_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_STIRLING_PDF_URL}}"
     - Flaresolverr:
         icon: flaresolverr.svg
         href: "{{HOMEPAGE_VAR_FLARESOLVERR_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_FLARESOLVERR_URL}}"
     - Homelab:
         icon: github.svg
         href: "{{HOMEPAGE_VAR_HOMEPAGE_GITHUB_URL}}"
-        siteMonitor: "{{HOMEPAGE_VAR_HOMEPAGE_GITHUB_URL}}"

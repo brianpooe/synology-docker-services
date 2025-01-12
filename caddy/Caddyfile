@@ -1,3 +1,13 @@
+(authenticate) {
+    reverse_proxy /outpost.goauthentik.io/* http://192.168.10.7:9000
+
+    forward_auth http://192.168.10.7:9000 {
+        uri /outpost.goauthentik.io/auth/caddy
+        copy_headers X-Authentik-Username X-Authentik-Groups X-Authentik-Email X-Authentik-Name X-Authentik-Uid X-Authentik-Jwt X-Authentik-Meta-Jwks X-Authentik-Meta-Outpost X-Authentik-Meta-Provider X-Authentik-Meta-App X-Authentik-Meta-Version
+        trusted_proxies private_ranges
+    }
+}
+
 {
     admin :2019
 }
@@ -49,6 +59,7 @@
     # Running on proxmox
     @pdf host pdf.home.brianpooe.com
     handle @pdf {
+        import authenticate
         reverse_proxy 192.168.10.12:8080
     }
     # Running on proxmox
@@ -62,6 +73,7 @@
     # Running on proxmox
     @homepage host homepage.home.brianpooe.com
     handle @homepage {
+        import authenticate
         reverse_proxy 192.168.10.14:3000
     }
 
@@ -93,6 +105,12 @@
     @ntfy host ntfy.home.brianpooe.com
     handle @ntfy {
         reverse_proxy 192.168.10.6:80
+    }
+
+    # Running on proxmox
+    @authentik host authentik.home.brianpooe.com
+    handle @authentik {
+        reverse_proxy 192.168.10.7:9000
     }
 
     # pihole running on a raspberry pi different vlan
