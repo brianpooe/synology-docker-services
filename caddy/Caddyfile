@@ -56,6 +56,26 @@
         encode gzip
     }
 
+    # Proxmox Backup Server
+    @pbs host pbs.home.brianpooe.com
+    handle @pbs {
+        reverse_proxy 192.168.10.8:8007 {
+            transport http {
+                tls_insecure_skip_verify
+            }
+            header_up Host {upstream_hostport}
+        }
+
+        header {
+            Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+            X-Content-Type-Options "nosniff"
+            X-Frame-Options "SAMEORIGIN"
+            Referrer-Policy "no-referrer"
+        }
+
+        encode gzip
+    }
+
     # Running on proxmox
     @pdf host pdf.home.brianpooe.com
     handle @pdf {
