@@ -1,155 +1,63 @@
+version: '3'
+
+networks:
+  vpn-network:
+    driver: bridge
+
 services:
   gluetun:
     image: qmcgaw/gluetun
     container_name: gluetun
-    # Hostname to use for container, required in some instances for the rest of the stack to each other endpoints
     hostname: gluetun
-    # line above must be uncommented to allow external containers to connect.
-    # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/connect-a-container-to-gluetun.md#external-container-to-gluetun
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - 8080:8080 # qbittorrent - Inbound torrent traffic
-      - 7878:7878 # Radarr
-      - 8989:8989 # Sonarr
-      - 9696:9696 # Prowlarr
-      - 6767:6767 # Bazarr
-      - 8282:8282 # Sabnzbd
-      - 5055:5055 # Jellyseerr
-      - 8191:8191 # Flaresolverr
-      - 8096:8096/tcp #Emby
-      - 8000:8000/tcp #Gluetun
+      - 8080:8080 # qbittorrent
+      - 8000:8000 # Gluetun WebUI
+    networks:
+      - vpn-network
     volumes:
       - {{DOCKERCONFDIR}}/gluetun:/gluetun
     environment:
-      - VPN_SERVICE_PROVIDER=airvpn #https://www.youtube.com/watch?v=SQEqsaKN-Go&t=271s
+      - VPN_SERVICE_PROVIDER=airvpn
       - VPN_TYPE=wireguard
       - WIREGUARD_PRIVATE_KEY={{WIREGUARD_PRIVATE_KEY}}
       - WIREGUARD_PRESHARED_KEY={{WIREGUARD_PRESHARED_KEY}}
       - WIREGUARD_ADDRESSES={{WIREGUARD_ADDRESSES}}
       - FIREWALL_VPN_INPUT_PORTS={{FIREWALL_VPN_INPUT_PORTS}}
       - SERVER_COUNTRIES={{SERVER_COUNTRIES}}
-      # Server list updater
-      # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
       - UPDATER_PERIOD=24h
+    restart: unless-stopped
 
   flaresolverr:
     container_name: flaresolverr
     image: flaresolverr/flaresolverr:latest
-    network_mode: "service:gluetun"
+    networks:
+      - vpn-network
+    ports:
+      - 8191:8191
     environment:
       - PUID={{PUID}}
       - PGID={{PGID}}
       - TZ={{TZ}}
       - LOG_LEVEL=info
+      # Recommended settings for better stability
+      - CAPTCHA_SOLVER=none
+      - MAX_TIMEOUT=60000
+      - BROWSER_TIMEOUT=40000
     labels:
       - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
       - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
       - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
     restart: unless-stopped
-
-  radarr:
-    container_name: radarr
-    image: ghcr.io/hotio/radarr:latest
-    network_mode: "service:gluetun"
-    logging:
-      driver: json-file
-      options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
-    restart: unless-stopped
-    labels:
-      - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
-      - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
-      - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
-    environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK=002
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/radarr:/config
-      - {{DOCKERSTORAGEDIR}}:/data
-
-  sonarr:
-    container_name: sonarr
-    image: ghcr.io/hotio/sonarr
-    network_mode: "service:gluetun"
-    logging:
-      driver: json-file
-      options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
-    restart: unless-stopped
-    labels:
-      - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
-      - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
-      - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
-    environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK=002
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/sonarr:/config
-      - {{DOCKERSTORAGEDIR}}:/data
-
-  bazarr:
-    container_name: bazarr
-    image: ghcr.io/hotio/bazarr:nightly
-    network_mode: "service:gluetun"
-    logging:
-      driver: json-file
-      options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
-    restart: unless-stopped
-    labels:
-      - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
-      - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
-      - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
-    environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK=002
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/bazarr:/config
-      - {{DOCKERSTORAGEDIR}}/media:/data/media
-
-  prowlarr:
-    container_name: prowlarr
-    image: ghcr.io/hotio/prowlarr
-    network_mode: "service:gluetun"
-    logging:
-      driver: json-file
-      options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
-    restart: unless-stopped
-    labels:
-      - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
-      - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
-      - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
-    environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK=002
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/prowlarr:/config:rw
 
   qbittorrent:
     container_name: qbittorrent
     image: ghcr.io/hotio/qbittorrent
     network_mode: "service:gluetun"
-    restart: always
+    restart: unless-stopped
     logging:
       driver: json-file
       options:
@@ -172,11 +80,13 @@ services:
     depends_on:
       - gluetun
 
-  # https://github.com/AmIBeingObtuse/Youtubestacks/blob/9a919079b87e17a00cf5407859c1c7dae6b47a4e/Sabnzbd%20Extension%20blacklist
   sabnzbd:
     container_name: sabnzbd
     image: ghcr.io/hotio/sabnzbd
-    network_mode: "service:gluetun"
+    networks:
+      - vpn-network
+    ports:
+      - 8282:8282
     restart: unless-stopped
     logging:
       driver: json-file
@@ -198,10 +108,133 @@ services:
       - {{DOCKERCONFDIR}}/sabnzbd:/config
       - {{DOCKERSTORAGEDIR}}/usenet:/data/usenet:rw
 
+  prowlarr:
+    container_name: prowlarr
+    image: ghcr.io/hotio/prowlarr
+    networks:
+      - vpn-network
+    ports:
+      - 9696:9696
+    logging:
+      driver: json-file
+      options:
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
+    restart: unless-stopped
+    labels:
+      - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
+      - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
+      - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
+    environment:
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - {{DOCKERCONFDIR}}/prowlarr:/config:rw
+    depends_on:
+      - flaresolverr
+
+  radarr:
+    container_name: radarr
+    image: ghcr.io/hotio/radarr:latest
+    networks:
+      - vpn-network
+    ports:
+      - 7878:7878
+    logging:
+      driver: json-file
+      options:
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
+    restart: unless-stopped
+    labels:
+      - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
+      - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
+      - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
+    environment:
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - {{DOCKERCONFDIR}}/radarr:/config
+      - {{DOCKERSTORAGEDIR}}:/data
+    depends_on:
+      - prowlarr
+      - qbittorrent
+      - sabnzbd
+
+  sonarr:
+    container_name: sonarr
+    image: ghcr.io/hotio/sonarr
+    networks:
+      - vpn-network
+    ports:
+      - 8989:8989
+    logging:
+      driver: json-file
+      options:
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
+    restart: unless-stopped
+    labels:
+      - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
+      - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
+      - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
+    environment:
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - {{DOCKERCONFDIR}}/sonarr:/config
+      - {{DOCKERSTORAGEDIR}}:/data
+    depends_on:
+      - prowlarr
+      - qbittorrent
+      - sabnzbd
+
+  bazarr:
+    container_name: bazarr
+    image: ghcr.io/hotio/bazarr:nightly
+    networks:
+      - vpn-network
+    ports:
+      - 6767:6767
+    logging:
+      driver: json-file
+      options:
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
+    restart: unless-stopped
+    labels:
+      - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
+      - "org.hotio.pullio.update={{PULLIO_UPDATE}}"
+      - "org.hotio.pullio.discord.webhook={{PULLIO_DISCORD_WEBHOOK}}"
+    environment:
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - {{DOCKERCONFDIR}}/bazarr:/config
+      - {{DOCKERSTORAGEDIR}}/media:/data/media
+    depends_on:
+      - sonarr
+      - radarr
+
   emby:
     container_name: emby
     image: lscr.io/linuxserver/emby
-    network_mode: "service:gluetun"
+    networks:
+      - vpn-network
+    ports:
+      - 8096:8096
     restart: unless-stopped
     logging:
       driver: json-file
@@ -221,13 +254,16 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/emby:/config:rw
       - {{DOCKERSTORAGEDIR}}/media:/data/media:rw
-    devices: # optional: if you have a Syno with an Intel CPU and want hardware transcoding
-      - /dev/dri:/dev/dri  # optional: if you have a Syno with an Intel CPU and want hardware transcoding
+    devices:
+      - /dev/dri:/dev/dri
 
   jellyseerr:
     container_name: jellyseerr
     image: hotio/jellyseerr
-    network_mode: "service:gluetun"
+    networks:
+      - vpn-network
+    ports:
+      - 5055:5055
     restart: unless-stopped
     logging:
       driver: json-file
@@ -246,11 +282,14 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/jellyseerr:/config
       - {{DOCKERSTORAGEDIR}}/media:/data/media
+    depends_on:
+      - emby
 
   recyclarr:
     container_name: recyclarr
     image: ghcr.io/recyclarr/recyclarr
-    network_mode: "service:gluetun"
+    networks:
+      - vpn-network
     user: {{PUID}}:{{PGID}}
     labels:
       - "org.hotio.pullio.notify={{PULLIO_NOTIFY}}"
@@ -261,3 +300,6 @@ services:
       - {{DOCKERCONFDIR}}/recyclarr:/config
     environment:
       - TZ={{TZ}}
+    depends_on:
+      - radarr
+      - sonarr
