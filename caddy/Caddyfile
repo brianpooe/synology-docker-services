@@ -26,9 +26,9 @@
         }
     }
 
-    @tplink8pe host tplink8pe.home.brianpooe.com
-    handle @tplink8pe {
-        reverse_proxy 192.168.1.9
+    @switchlite8poe host switchlite8poe.home.brianpooe.com
+    handle @switchlite8poe {
+        reverse_proxy 192.168.1.5
     }
 
     @tplink16de host tplink16de.home.brianpooe.com

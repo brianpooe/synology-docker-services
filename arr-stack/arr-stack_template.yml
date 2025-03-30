@@ -29,24 +29,6 @@ services:
       - UPDATER_PERIOD=24h
     restart: unless-stopped
 
-  flaresolverr:
-    container_name: flaresolverr
-    image: flaresolverr/flaresolverr:latest
-    networks:
-      - vpn-network
-    ports:
-      - 8191:8191
-    environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - LOG_LEVEL=info
-      # Recommended settings for better stability
-      - CAPTCHA_SOLVER=none
-      - MAX_TIMEOUT=60000
-      - BROWSER_TIMEOUT=40000
-    restart: unless-stopped
-
   qbittorrent:
     container_name: qbittorrent
     image: ghcr.io/hotio/qbittorrent
@@ -69,6 +51,24 @@ services:
       - {{DOCKERSTORAGEDIR}}/torrents:/data/torrents:rw
     depends_on:
       - gluetun
+
+  flaresolverr:
+    container_name: flaresolverr
+    image: flaresolverr/flaresolverr:latest
+    networks:
+      - vpn-network
+    ports:
+      - 8191:8191
+    environment:
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
+      - LOG_LEVEL=info
+      # Recommended settings for better stability
+      - CAPTCHA_SOLVER=none
+      - MAX_TIMEOUT=60000
+      - BROWSER_TIMEOUT=40000
+    restart: unless-stopped
 
   sabnzbd:
     container_name: sabnzbd
