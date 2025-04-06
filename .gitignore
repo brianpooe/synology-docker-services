@@ -222,4 +222,5 @@ fabric.properties
 .env
 services.yml
 arr-stack.yml
+vault.yml
 # End of https://www.toptal.com/developers/gitignore/api/webstorm+all,webstorm,linux,macos
