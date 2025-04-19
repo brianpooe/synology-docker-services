@@ -222,7 +222,7 @@ fabric.properties
 .env
 
 config-files/**/*
-config-files/**/*_template.yaml
+config-files/**/*_template.{yaml|hcl}
 
 docker-compose-files/*
 !docker-compose-files/*_template.yaml
