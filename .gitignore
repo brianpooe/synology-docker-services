@@ -220,7 +220,10 @@ fabric.properties
 !.idea/codeStyles
 !.idea/runConfigurations
 .env
-services.yml
-arr-stack.yml
-vault.yml
+
+config-files/homepage/*
+config-files/homepage/*_template.yaml
+
+docker-compose-files/*
+!docker-compose-files/*_template.yaml
 # End of https://www.toptal.com/developers/gitignore/api/webstorm+all,webstorm,linux,macos
