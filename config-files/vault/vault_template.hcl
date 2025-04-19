@@ -9,6 +9,6 @@ listener "tcp" {
   tls_disable = true
 }
 
-storage "file" {
-  path    = "/vault/data"
+storage "postgresql" {
+  connection_url = "postgres://{{POSTGRES_USER}}:{{POSTGRES_PASSWORD}}@{{POSTGRES_URL}}:{{POSTGRES_PORT}}/{{POSTGRES_DB}}"
 }

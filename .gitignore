@@ -221,8 +221,8 @@ fabric.properties
 !.idea/runConfigurations
 .env
 
-config-files/homepage/*
-config-files/homepage/*_template.yaml
+config-files/**/*
+config-files/**/*_template.yaml
 
 docker-compose-files/*
 !docker-compose-files/*_template.yaml

@@ -6,3 +6,8 @@
 # Recyclarr installation guide
 #### Recyclarr is a command-line application that will automatically synchronize recommended settings from the TRaSH guides to your Sonarr/Radarr instances.
 ### [Recyclarr Wiki](https://wiki.serversatho.me/en/Recyclarr)
+
+## Pgadmin permissions issue
+```shell
+    chown -R 5050:5050 /volume1/docker/appdata/pgadmin
+```
