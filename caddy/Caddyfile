@@ -1,155 +1,192 @@
-(authenticate) {
-    reverse_proxy /outpost.goauthentik.io/* http://192.168.10.7:9000
-
-    forward_auth http://192.168.10.7:9000 {
-        uri /outpost.goauthentik.io/auth/caddy
-        copy_headers X-Authentik-Username X-Authentik-Groups X-Authentik-Email X-Authentik-Name X-Authentik-Uid X-Authentik-Jwt X-Authentik-Meta-Jwks X-Authentik-Meta-Outpost X-Authentik-Meta-Provider X-Authentik-Meta-App X-Authentik-Meta-Version
-        trusted_proxies private_ranges
-    }
-}
-
 {
     admin :2019
 }
 
-*.home.brianpooe.com {
-    tls {
-        dns cloudflare {env.DNS_PROVIDER_TOKEN}
+#### Reusable Snippets
+(common) {
+    tls brian.method@gmail.com {
+        dns cloudflare {env.CLOUDFLARE_DNS_TOKEN}
     }
-
-    @switchlite8poe host switchlite8poe.home.brianpooe.com
-    handle @switchlite8poe {
-        reverse_proxy 192.168.1.5
-    }
-
-    @tplink16de host tplink16de.home.brianpooe.com
-    handle @tplink16de {
-        reverse_proxy 192.168.1.8
-    }
-
-    # Proxmox
-    @proxmox host proxmox.home.brianpooe.com
-    handle @proxmox {
-        reverse_proxy 192.168.10.10:8006 {
-            transport http {
-                tls_insecure_skip_verify
-            }
-            header_up Host {upstream_hostport}
-        }
-
-        header {
-            Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-            X-Content-Type-Options "nosniff"
-            X-Frame-Options "SAMEORIGIN"
-            Referrer-Policy "no-referrer"
-        }
-
-        encode gzip
-    }
-
-    # Proxmox Backup Server
-    @pbs host pbs.home.brianpooe.com
-    handle @pbs {
-        reverse_proxy 192.168.10.8:8007 {
-            transport http {
-                tls_insecure_skip_verify
-            }
-            header_up Host {upstream_hostport}
-        }
-
-        header {
-            Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-            X-Content-Type-Options "nosniff"
-            X-Frame-Options "SAMEORIGIN"
-            Referrer-Policy "no-referrer"
-        }
-
-        encode gzip
-    }
-
-    # pihole running on a raspberry pi different vlan
-    @pihole host pihole.home.brianpooe.com
-    handle @pihole {
-        encode zstd gzip
-        rewrite * /admin{uri}
-        reverse_proxy 192.168.60.5:80
-    }
-
-    # The rest of the apps are running in docker inside synology nas
-    @nas host nas.home.brianpooe.com
-    handle @nas {
-        reverse_proxy 192.168.10.24:5000
-    }
-
-    @emby host emby.home.brianpooe.com
-    handle @emby {
-        reverse_proxy 192.168.10.24:8096
-    }
-
-    @qbittorrent host qbittorrent.home.brianpooe.com
-    handle @qbittorrent {
-        reverse_proxy 192.168.10.24:8080
-    }
-
-    @radarr host radarr.home.brianpooe.com
-    handle @radarr {
-        reverse_proxy 192.168.10.24:7878
-    }
-
-    @sonarr host sonarr.home.brianpooe.com
-    handle @sonarr {
-        reverse_proxy 192.168.10.24:8989
-    }
-
-    @prowlarr host prowlarr.home.brianpooe.com
-    handle @prowlarr {
-        reverse_proxy 192.168.10.24:9696
-    }
-
-    @bazarr host bazarr.home.brianpooe.com
-    handle @bazarr {
-        reverse_proxy 192.168.10.24:6767
-    }
-
-    @sabnzbd host sabnzbd.home.brianpooe.com
-    handle @sabnzbd {
-        reverse_proxy 192.168.10.24:8282
-    }
-
-    @jellyseerr host jellyseerr.home.brianpooe.com
-    handle @jellyseerr {
-        reverse_proxy 192.168.10.24:5055
-    }
-
-    @flaresolverr host flaresolverr.home.brianpooe.com
-    handle @flaresolverr {
-        reverse_proxy 192.168.10.24:8191
-    }
-
-    @gluetun host gluetun.home.brianpooe.com
-    handle @gluetun {
-        reverse_proxy 192.168.10.24:8000
-    }
-
-    @huntarr host huntarr.home.brianpooe.com
-    handle @huntarr {
-        reverse_proxy 192.168.10.24:9705
-    }
-
-    # Proxmox apps
-    @komodo host komodo.home.brianpooe.com
-    handle @komodo {
-        reverse_proxy 192.168.10.6:9120
-    }
-
-    @pgadminvault host pgadmin-vault.home.brianpooe.com
-    handle @pgadminvault {
-        reverse_proxy 192.168.10.24:8484 {
-            header_up X-Scheme {scheme}
-            header_up X-Script-Name "/pgadmin4"
-            header_up X-Real-IP {remote}
-            header_up X-Forwarded-Proto {scheme}
-            header_up Redirect off
-        }
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubdomains; preload"
+        X-XSS-Protection 0
+        # Prevent browsers from incorrectly detecting non-scripts as scripts and MIME type sniffing
+        X-Content-Type-Options nosniff
+        Referrer-Policy same-origin
+        -Server
+        # Enable cross-site filter (XSS) and tell browser to block detected attacks
+        X-Frame-Options "ALLOW-FROM *.home.brianpooe.com"
+        Permissions-Policy "geolocation=(self  *.home.brianpooe.com), microphone=(), interest-cohort=()"
+        import content-security-general
     }
 }
+#### Content Security Snippets
+(content-security-general) { # Default setup
+    # Disable unsafe inline/eval and plugins, only load scripts and stylesheets from same origin, fonts from google,
+    #   and images from same origin and imgur. Sites should aim for policies like this.
+    Content-Security-Policy "frame-ancestors  *.home.brianpooe.com"
+    #"default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self'; form-action 'self'; connect-src 'self'; frame-ancestors 'none';"
+    #default-src 'none'; font-src https://fonts.gstatic.com; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self'; style-src 'self'
+}
+(content-security-basic) { # Most basic setup
+    # Disable unsafe inline/eval, only load resources from same origin except also allow images from imgur
+    # Also disables the execution of plugins
+    Content-Security-Policy default-src 'self'; img-src 'self' https://i.imgur.com; object-src 'none'
+}
+(content-security-api) { # API
+    # Disable the loading of any resources and disable framing, recommended for APIs to use
+    Content-Security-Policy default-src 'none'; frame-ancestors 'none'
+}
+
+switchlite8poe.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.1.5
+}
+
+tplink16de.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.1.8
+}
+
+# Proxmox
+proxmox.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.10:8006 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+        header_up Host {upstream_hostport}
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "no-referrer"
+    }
+
+    encode gzip
+}
+
+# Proxmox Backup Server
+pbs.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.8:8007 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+        header_up Host {upstream_hostport}
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "no-referrer"
+    }
+
+    encode gzip
+}
+
+# pihole running on a raspberry pi different vlan
+pihole.home.brianpooe.com {
+    import common
+    encode zstd gzip
+
+    rewrite * /admin{uri}
+
+    reverse_proxy 192.168.60.5:80 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up Referer {http.request.header.Referer}
+        header_up Origin {http.request.header.Origin}
+    }
+}
+
+
+# The rest of the apps are running in docker inside synology nas
+nas.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:5000
+}
+
+emby.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:8096
+}
+
+qbittorrent.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:8080
+}
+
+radarr.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:7878
+}
+
+sonarr.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:8989
+}
+
+prowlarr.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:9696
+}
+
+bazarr.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:6767
+}
+
+sabnzbd.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:8282
+}
+
+jellyseerr.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:5055
+}
+
+flaresolverr.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:8191
+}
+
+gluetun.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:8000
+}
+
+huntarr.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.24:9705
+}
+
+# Proxmox apps
+komodo.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.6:9120
+}
+
+paperless-ngx.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.11:8000 {
+        header_up Host {host}
+    }
+
+    encode gzip
+}
+paperless-ai.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.12:3000
+}
+
+ollama.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.9:11434
+}
+
