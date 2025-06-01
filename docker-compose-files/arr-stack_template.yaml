@@ -276,3 +276,31 @@ services:
       - WATCHTOWER_NO_STARTUP_MESSAGE=true
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_TIMEOUT=30s
+
+  huntarr:
+    container_name: huntarr
+    image: ghcr.io/plexguide/huntarr:latest
+    networks:
+      - vpn-network
+    ports:
+      - 9705:9705
+    logging:
+      driver: json-file
+      options:
+        max-file: {{DOCKERLOGGING_MAXFILE}}
+        max-size: {{DOCKERLOGGING_MAXSIZE}}
+    restart: unless-stopped
+    environment:
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
+      - UMASK=002
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - {{DOCKERCONFDIR}}/huntarr:/config
+    depends_on:
+      - prowlarr
+      - qbittorrent
+      - sabnzbd
+      - radarr
+      - sonarr

@@ -3,6 +3,8 @@ services:
     image: hashicorp/vault:1.19.2
     container_name: vault
     restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
     ports:
       - "8200:8200"
       - "8201:8201"
