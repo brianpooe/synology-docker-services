@@ -104,7 +104,6 @@ pihole.home.brianpooe.com {
     }
 }
 
-
 # The rest of the apps are running in docker inside synology nas
 nas.home.brianpooe.com {
     import common
@@ -162,11 +161,6 @@ gluetun.home.brianpooe.com {
 }
 
 # Proxmox apps
-komodo.home.brianpooe.com {
-    import common
-    reverse_proxy 192.168.10.6:9120
-}
-
 paperless-ngx.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.11:8000 {
@@ -188,5 +182,10 @@ ollama.home.brianpooe.com {
 it-tools.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.7:80
+}
+
+bento-pdf.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.6:8080
 }
 
