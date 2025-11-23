@@ -1,6 +1,74 @@
 version: '3.8'
 
 services:
+  # Socket-proxy: Security gateway for Docker API access
+  # Provides restricted access to docker.sock for Watchtower
+  socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:latest
+    container_name: socket-proxy
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=docker-api-proxy"
+      - "com.centurylinklabs.watchtower.enable=false"
+    environment:
+      TZ: {{TZ}}
+      LOG_LEVEL: info
+      # Default monitoring endpoints (read-only)
+      EVENTS: 1
+      PING: 1
+      VERSION: 1
+      INFO: 1
+      # Required for Watchtower to manage containers and images
+      CONTAINERS: 1
+      IMAGES: 1
+      # Security: Deny dangerous operations
+      AUTH: 0
+      BUILD: 0
+      COMMIT: 0
+      CONFIGS: 0
+      DISTRIBUTION: 0
+      EXEC: 0
+      GRPC: 0
+      NETWORKS: 0
+      NODES: 0
+      PLUGINS: 0
+      SECRETS: 0
+      SERVICES: 0
+      SESSION: 0
+      SWARM: 0
+      SYSTEM: 0
+      TASKS: 0
+      VOLUMES: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:2375/version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    read_only: true
+    tmpfs:
+      - /run
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
   gluetun:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
@@ -491,14 +559,11 @@ services:
       - "com.synology.service=auto-updater"
     networks:
       - vpn-network
-      # Uncomment if using socket-proxy
-      # - socket-proxy
+      - socket-proxy
     environment:
       TZ: {{TZ}}
-      # Socket-proxy configuration (recommended for security)
-      # If using socket-proxy, uncomment the next line and comment out the volumes section below
-      # DOCKER_HOST: tcp://socket-proxy:2375
-
+      # Use socket-proxy for secure Docker API access
+      DOCKER_HOST: tcp://socket-proxy:2375
       WATCHTOWER_SCHEDULE: {{WATCHTOWER_SCHEDULE}}
       WATCHTOWER_NOTIFICATION_URL: {{WATCHTOWER_NOTIFICATION_URL}}
       WATCHTOWER_NO_STARTUP_MESSAGE: "true"
@@ -511,14 +576,9 @@ services:
       WATCHTOWER_LABEL_ENABLE: {{WATCHTOWER_LABEL_ENABLE}}
       # Only monitor, don't actually update (set to true for monitoring only)
       WATCHTOWER_MONITOR_ONLY: "false"
-    volumes:
-      # Direct socket access (works but less secure)
-      # If using socket-proxy, comment out this line
-      - /var/run/docker.sock:/var/run/docker.sock
-    # Uncomment if using socket-proxy
-    # depends_on:
-    #   socket-proxy:
-    #     condition: service_healthy
+    depends_on:
+      socket-proxy:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -540,7 +600,9 @@ networks:
     labels:
       - "com.synology.network=media"
 
-  # Uncomment if using socket-proxy
-  # socket-proxy:
-  #   external: true
-  #   name: socket_proxy
+  socket-proxy:
+    driver: bridge
+    name: socket_proxy
+    internal: true  # Not accessible from outside Docker
+    labels:
+      - "com.synology.network=security"
