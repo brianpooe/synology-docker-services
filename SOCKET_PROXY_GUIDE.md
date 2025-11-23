@@ -78,74 +78,59 @@ VOLUMES=0      # Cannot manage volumes (uses existing)
 NETWORKS=0     # Cannot manage networks (uses existing)
 BUILD=0        # Cannot build images
 COMMIT=0       # Cannot commit containers
-POST=0         # Cannot unrestricted POST
 SYSTEM=0       # Cannot system-wide operations
+
+# NOTE: POST is NOT set to 0 - Watchtower needs POST for creating containers!
+# POST operations are allowed ONLY to enabled endpoints (CONTAINERS, IMAGES)
 ```
 
 ---
 
 ## Implementation Guide
 
-### Step 1: Deploy Socket-Proxy
+### ✅ Socket-Proxy is Now Integrated by Default!
+
+**Good news:** Socket-proxy is built directly into `arr-stack_template.yaml` and enabled by default as of the latest update.
+
+### What You Get
+
+When you deploy the arr-stack, socket-proxy is automatically included:
+- Socket-proxy container with restrictedpermissions
+- Watchtower configured to use socket-proxy
+- Secure by default, no additional setup needed
+
+### Deploy and Verify
 
 ```bash
-# Generate the compose file
-./substitute_env.sh docker-compose-files/socket-proxy_template.yaml docker-compose.socket-proxy.yml
+# Generate and deploy
+./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
+docker-compose -f docker-compose.arr-stack.yml up -d
 
-# Start socket-proxy
-docker-compose -f docker-compose.socket-proxy.yml up -d
-
-# Verify it's running
+# Check socket-proxy is running and healthy
+docker ps | grep socket-proxy
 docker logs socket-proxy
-docker exec socket-proxy wget -qO- http://localhost:2375/version
-```
 
-### Step 2: Update Watchtower Configuration
-
-Edit your generated `docker-compose.arr-stack.yml`:
-
-**Before:**
-```yaml
-watchtower:
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-  networks:
-    - vpn-network
-```
-
-**After:**
-```yaml
-watchtower:
-  environment:
-    DOCKER_HOST: tcp://socket-proxy:2375  # Use proxy instead
-  networks:
-    - vpn-network
-    - socket-proxy  # Add socket-proxy network
-  depends_on:
-    socket-proxy:
-      condition: service_healthy
-  # Remove volumes section
-
-networks:
-  socket-proxy:
-    external: true
-    name: socket_proxy
-```
-
-### Step 3: Test Watchtower
-
-```bash
-# Recreate Watchtower with new config
-docker-compose -f docker-compose.arr-stack.yml up -d watchtower
-
-# Check Watchtower logs - should connect successfully
+# Verify Watchtower is using socket-proxy
 docker logs watchtower
 
-# Verify it can check for updates
-docker exec watchtower watchtower --run-once --debug
+# Test socket-proxy responds
+docker exec watchtower wget -qO- http://socket-proxy:2375/version
 ```
 
-### Step 4: Verify Security
+### Test Watchtower Updates
+
+```bash
+# Check Watchtower logs - should show connection to socket-proxy
+docker logs watchtower
+
+# Manually trigger update check
+docker exec watchtower watchtower --run-once --debug
+
+# Watch for updates
+docker logs -f watchtower
+```
+
+### Verify Security
 
 ```bash
 # This should work (Watchtower can list containers)
