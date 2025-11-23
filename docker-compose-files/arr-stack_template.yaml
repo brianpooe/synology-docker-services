@@ -421,7 +421,7 @@ services:
     devices:
       - /dev/dri:/dev/dri
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 8096 || exit 1"]
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8096' || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5
