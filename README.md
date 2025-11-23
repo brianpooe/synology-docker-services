@@ -339,9 +339,10 @@ docker-compose -f docker-compose.arr-stack.yml stop
 
 ### Detailed Guides
 - **[Socket-Proxy Security](docs/SOCKET_PROXY.md)** - Docker API security implementation
+- **[Watchtower Configuration](docs/WATCHTOWER.md)** - Automatic updates and Discord notifications
+- **[Recyclarr Setup](docs/RECYCLARR.md)** - Quality profile configuration
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Improvements Guide](docs/IMPROVEMENTS.md)** - What changed and why
-- **[Recyclarr Setup](docs/RECYCLARR.md)** - Quality profile configuration
 
 ### External Resources
 - **[TRaSH Guides](https://trash-guides.info/)** - File structure and quality profiles
@@ -383,6 +384,20 @@ base_url: http://localhost:8989  # ❌ Wrong
 docker logs socket-proxy
 docker logs watchtower
 ```
+
+#### Watchtower: Discord notification errors
+**Symptoms:** `error initializing router services: unknown service "https"`
+
+**Fix:** Convert Discord webhook URL to Shoutrrr format:
+```bash
+# Wrong format:
+WATCHTOWER_NOTIFICATION_URL=https://discord.com/api/webhooks/ID/TOKEN
+
+# Correct format:
+WATCHTOWER_NOTIFICATION_URL=discord://TOKEN@ID
+```
+
+**See full guide:** [docs/WATCHTOWER.md](docs/WATCHTOWER.md)
 
 #### qBittorrent: No connection
 **Fix:** Check Gluetun VPN is connected:
