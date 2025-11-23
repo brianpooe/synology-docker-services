@@ -1,5 +1,9 @@
 version: '3.8'
 
+# Synology DS920+ Compatible Configuration
+# Note: CPU limits removed due to kernel lacking CPU CFS scheduler support
+# Memory limits are supported and configured below
+
 services:
   vault:
     image: hashicorp/vault:1.19.2
@@ -34,10 +38,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
           memory: 512M
         reservations:
-          cpus: '0.25'
           memory: 128M
     security_opt:
       - no-new-privileges:true

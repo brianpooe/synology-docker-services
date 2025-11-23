@@ -1,51 +1,35 @@
 version: '3.8'
 
+# Synology DS920+ Compatible Configuration
+# Note: CPU limits removed due to kernel lacking CPU CFS scheduler support
+# Memory limits are supported and configured below
+
 services:
-  # Socket-proxy: Security gateway for Docker API access
-  # Provides restricted access to docker.sock for Watchtower
   socket-proxy:
     image: lscr.io/linuxserver/socket-proxy:latest
     container_name: socket-proxy
     restart: unless-stopped
     labels:
       - "com.synology.stack=media"
-      - "com.synology.service=docker-api-proxy"
-      - "com.centurylinklabs.watchtower.enable=false"
-    environment:
-      TZ: {{TZ}}
-      LOG_LEVEL: info
-      # Default monitoring endpoints (read-only)
-      EVENTS: 1
-      PING: 1
-      VERSION: 1
-      INFO: 1
-      # Required for Watchtower to manage containers and images
-      CONTAINERS: 1
-      IMAGES: 1
-      # Security: Deny dangerous operations
-      AUTH: 0
-      BUILD: 0
-      COMMIT: 0
-      CONFIGS: 0
-      DISTRIBUTION: 0
-      EXEC: 0
-      GRPC: 0
-      NETWORKS: 0
-      NODES: 0
-      PLUGINS: 0
-      SECRETS: 0
-      SERVICES: 0
-      SESSION: 0
-      SWARM: 0
-      SYSTEM: 0
-      TASKS: 0
-      VOLUMES: 0
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - "com.synology.service=docker-proxy"
     networks:
       - socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      CONTAINERS: 1
+      POST: 1
+      IMAGES: 1
+      NETWORKS: 0
+      SERVICES: 0
+      TASKS: 0
+      EXEC: 0
+      SECRETS: 0
     healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:2375/version || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:2375/version || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -53,14 +37,9 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          memory: 128M
         reservations:
-          cpus: '0.1'
-          memory: 64M
-    read_only: true
-    tmpfs:
-      - /run
+          memory: 32M
     security_opt:
       - no-new-privileges:true
     logging:
@@ -107,10 +86,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
           memory: 512M
         reservations:
-          cpus: '0.25'
           memory: 128M
     security_opt:
       - no-new-privileges:true
@@ -144,10 +121,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
           memory: 1G
         reservations:
-          cpus: '0.5'
           memory: 256M
     security_opt:
       - no-new-privileges:true
@@ -185,10 +160,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
           memory: 1G
         reservations:
-          cpus: '0.25'
           memory: 256M
     security_opt:
       - no-new-privileges:true
@@ -228,10 +201,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
           memory: 2G
         reservations:
-          cpus: '0.5'
           memory: 512M
     security_opt:
       - no-new-privileges:true
@@ -272,10 +243,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
           memory: 512M
         reservations:
-          cpus: '0.25'
           memory: 128M
     security_opt:
       - no-new-privileges:true
@@ -319,10 +288,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
           memory: 1G
         reservations:
-          cpus: '0.25'
           memory: 256M
     security_opt:
       - no-new-privileges:true
@@ -366,10 +333,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
           memory: 1G
         reservations:
-          cpus: '0.25'
           memory: 256M
     security_opt:
       - no-new-privileges:true
@@ -413,10 +378,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
           memory: 512M
         reservations:
-          cpus: '0.1'
           memory: 128M
     security_opt:
       - no-new-privileges:true
@@ -457,10 +420,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4.0'
           memory: 4G
         reservations:
-          cpus: '1.0'
           memory: 1G
     security_opt:
       - no-new-privileges:true
@@ -501,10 +462,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
           memory: 512M
         reservations:
-          cpus: '0.1'
           memory: 128M
     security_opt:
       - no-new-privileges:true
@@ -537,10 +496,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
           memory: 256M
         reservations:
-          cpus: '0.1'
           memory: 64M
     security_opt:
       - no-new-privileges:true
@@ -562,8 +519,6 @@ services:
       - socket-proxy
     environment:
       TZ: {{TZ}}
-      # Use socket-proxy for secure Docker API access
-      DOCKER_HOST: tcp://socket-proxy:2375
       WATCHTOWER_SCHEDULE: {{WATCHTOWER_SCHEDULE}}
       WATCHTOWER_NOTIFICATION_URL: {{WATCHTOWER_NOTIFICATION_URL}}
       WATCHTOWER_NO_STARTUP_MESSAGE: "true"
@@ -571,21 +526,15 @@ services:
       WATCHTOWER_TIMEOUT: 30s
       WATCHTOWER_INCLUDE_STOPPED: "false"
       WATCHTOWER_REVIVE_STOPPED: "false"
-      # Security: Limit Watchtower's scope (optional but recommended)
-      WATCHTOWER_SCOPE: {{WATCHTOWER_SCOPE}}
-      WATCHTOWER_LABEL_ENABLE: {{WATCHTOWER_LABEL_ENABLE}}
-      # Only monitor, don't actually update (set to true for monitoring only)
-      WATCHTOWER_MONITOR_ONLY: "false"
+      DOCKER_HOST: tcp://socket-proxy:2375
     depends_on:
       socket-proxy:
         condition: service_healthy
     deploy:
       resources:
         limits:
-          cpus: '0.5'
           memory: 256M
         reservations:
-          cpus: '0.1'
           memory: 64M
     logging:
       driver: json-file
@@ -602,7 +551,7 @@ networks:
 
   socket-proxy:
     driver: bridge
-    name: socket_proxy
-    internal: true  # Not accessible from outside Docker
+    name: socket_proxy_network
+    internal: true
     labels:
-      - "com.synology.network=security"
+      - "com.synology.network=docker-proxy"
