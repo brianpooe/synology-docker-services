@@ -1,278 +1,524 @@
-networks:
-  vpn-network:
-    driver: bridge
+version: '3.8'
 
 services:
   gluetun:
-    image: qmcgaw/gluetun
+    image: qmcgaw/gluetun:latest
     container_name: gluetun
     hostname: gluetun
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=vpn"
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - 8080:8080 # qbittorrent
-      - 8000:8000/tcp # Gluetun WebUI
+      - "8080:8080"     # qbittorrent WebUI
+      - "8000:8000/tcp" # Gluetun WebUI
     networks:
       - vpn-network
     volumes:
       - {{DOCKERCONFDIR}}/gluetun:/gluetun
     environment:
-      - VPN_SERVICE_PROVIDER=airvpn #https://www.youtube.com/watch?v=SQEqsaKN-Go&t=271s
-      - VPN_TYPE=wireguard
-      - WIREGUARD_PRIVATE_KEY={{WIREGUARD_PRIVATE_KEY}}
-      - WIREGUARD_PRESHARED_KEY={{WIREGUARD_PRESHARED_KEY}}
-      - WIREGUARD_ADDRESSES={{WIREGUARD_ADDRESSES}}
-      - FIREWALL_VPN_INPUT_PORTS={{FIREWALL_VPN_INPUT_PORTS}}
-      - SERVER_COUNTRIES={{SERVER_COUNTRIES}}
-      - UPDATER_PERIOD=24h
-    restart: unless-stopped
-
-  qbittorrent:
-    container_name: qbittorrent
-    image: ghcr.io/hotio/qbittorrent
-    network_mode: "service:gluetun"
-    restart: unless-stopped
+      VPN_SERVICE_PROVIDER: airvpn
+      VPN_TYPE: wireguard
+      WIREGUARD_PRIVATE_KEY: {{WIREGUARD_PRIVATE_KEY}}
+      WIREGUARD_PRESHARED_KEY: {{WIREGUARD_PRESHARED_KEY}}
+      WIREGUARD_ADDRESSES: {{WIREGUARD_ADDRESSES}}
+      FIREWALL_VPN_INPUT_PORTS: {{FIREWALL_VPN_INPUT_PORTS}}
+      SERVER_COUNTRIES: {{SERVER_COUNTRIES}}
+      UPDATER_PERIOD: 24h
+      TZ: {{TZ}}
+    healthcheck:
+      test: ["CMD-SHELL", "ping -c 1 1.1.1.1 || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  qbittorrent:
+    image: ghcr.io/hotio/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=torrent-client"
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - WEBUI_PORTS=8080/tcp,8080/udp
-      - UMASK=002
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      WEBUI_PORTS: 8080/tcp,8080/udp
+      UMASK: 002
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/qbittorrent:/config
       - {{DOCKERSTORAGEDIR}}/torrents:/data/torrents:rw
     depends_on:
-      - gluetun
-
-  flaresolverr:
-    container_name: flaresolverr
-    image: flaresolverr/flaresolverr:latest
-    networks:
-      - vpn-network
-    ports:
-      - 8191:8191
-    environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - LOG_LEVEL=info
-      # Recommended settings for better stability
-      - CAPTCHA_SOLVER=none
-      - MAX_TIMEOUT=60000
-      - BROWSER_TIMEOUT=40000
-    restart: unless-stopped
-
-  sabnzbd:
-    container_name: sabnzbd
-    image: ghcr.io/hotio/sabnzbd
-    networks:
-      - vpn-network
-    ports:
-      - 8282:8282
-    restart: unless-stopped
+      gluetun:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=captcha-solver"
+    networks:
+      - vpn-network
+    ports:
+      - "8191:8191"
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - WEBUI_PORTS=8282/tcp,8282/udp
-      - UMASK=002
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      LOG_LEVEL: info
+      CAPTCHA_SOLVER: none
+      MAX_TIMEOUT: 60000
+      BROWSER_TIMEOUT: 40000
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8191/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  sabnzbd:
+    image: ghcr.io/hotio/sabnzbd:latest
+    container_name: sabnzbd
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=usenet-client"
+    networks:
+      - vpn-network
+    ports:
+      - "8282:8282"
+    environment:
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      WEBUI_PORTS: 8282/tcp,8282/udp
+      UMASK: 002
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/sabnzbd:/config
       - {{DOCKERSTORAGEDIR}}/usenet:/data/usenet:rw
-
-  prowlarr:
-    container_name: prowlarr
-    image: ghcr.io/hotio/prowlarr
-    networks:
-      - vpn-network
-    ports:
-      - 9696:9696
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8282/api?mode=version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  prowlarr:
+    image: ghcr.io/hotio/prowlarr:latest
+    container_name: prowlarr
     restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=indexer-manager"
+    networks:
+      - vpn-network
+    ports:
+      - "9696:9696"
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK=002
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      UMASK: 002
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/prowlarr:/config:rw
     depends_on:
-      - flaresolverr
-
-  radarr:
-    container_name: radarr
-    image: ghcr.io/hotio/radarr:latest
-    networks:
-      - vpn-network
-    ports:
-      - 7878:7878
+      flaresolverr:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9696/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  radarr:
+    image: ghcr.io/hotio/radarr:latest
+    container_name: radarr
     restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=movie-pvr"
+    networks:
+      - vpn-network
+    ports:
+      - "7878:7878"
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK=002
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      UMASK: 002
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/radarr:/config
       - {{DOCKERSTORAGEDIR}}:/data
     depends_on:
-      - prowlarr
-      - qbittorrent
-      - sabnzbd
-
-  sonarr:
-    container_name: sonarr
-    image: ghcr.io/hotio/sonarr
-    networks:
-      - vpn-network
-    ports:
-      - 8989:8989
+      prowlarr:
+        condition: service_healthy
+      gluetun:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7878/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  sonarr:
+    image: ghcr.io/hotio/sonarr:latest
+    container_name: sonarr
     restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=tv-pvr"
+    networks:
+      - vpn-network
+    ports:
+      - "8989:8989"
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK=002
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      UMASK: 002
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/sonarr:/config
       - {{DOCKERSTORAGEDIR}}:/data
     depends_on:
-      - prowlarr
-      - qbittorrent
-      - sabnzbd
-
-  bazarr:
-    container_name: bazarr
-    image: ghcr.io/hotio/bazarr:nightly
-    networks:
-      - vpn-network
-    ports:
-      - 6767:6767
+      prowlarr:
+        condition: service_healthy
+      gluetun:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8989/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  bazarr:
+    image: ghcr.io/hotio/bazarr:nightly
+    container_name: bazarr
     restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=subtitle-manager"
+    networks:
+      - vpn-network
+    ports:
+      - "6767:6767"
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK=002
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      UMASK: 002
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/bazarr:/config
       - {{DOCKERSTORAGEDIR}}/media:/data/media
     depends_on:
-      - sonarr
-      - radarr
-
-  emby:
-    container_name: emby
-    image: lscr.io/linuxserver/emby
-    networks:
-      - vpn-network
-    ports:
-      - 8096:8096
-    restart: unless-stopped
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6767/api/system/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  emby:
+    image: lscr.io/linuxserver/emby:latest
+    container_name: emby
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=media-server"
+    networks:
+      - vpn-network
+    ports:
+      - "8096:8096"
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
-      - UMASK_SET=022
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
+      UMASK_SET: 022
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/emby:/config:rw
       - {{DOCKERSTORAGEDIR}}/media:/data/media:rw
     devices:
-      - /dev/dri:/dev/dri # optional: if you have a Synology with an Intel CPU and want hardware transcoding
-
-  jellyseerr:
-    container_name: jellyseerr
-    image: hotio/jellyseerr
-    networks:
-      - vpn-network
-    ports:
-      - 5055:5055
-    restart: unless-stopped
+      - /dev/dri:/dev/dri
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8096/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: {{DOCKERLOGGING_MAXFILE}}
-        max-size: {{DOCKERLOGGING_MAXSIZE}}
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  jellyseerr:
+    image: hotio/jellyseerr:latest
+    container_name: jellyseerr
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=media-requests"
+    networks:
+      - vpn-network
+    ports:
+      - "5055:5055"
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
+      PUID: {{PUID}}
+      PGID: {{PGID}}
+      TZ: {{TZ}}
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/jellyseerr:/config
       - {{DOCKERSTORAGEDIR}}/media:/data/media
     depends_on:
-      - emby
+      emby:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5055/api/v1/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
 
   recyclarr:
+    image: ghcr.io/recyclarr/recyclarr:latest
     container_name: recyclarr
-    image: ghcr.io/recyclarr/recyclarr
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=arr-config-manager"
     networks:
       - vpn-network
-    user: {{PUID}}:{{PGID}}
+    user: "{{PUID}}:{{PGID}}"
+    environment:
+      TZ: {{TZ}}
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/recyclarr:/config
-    environment:
-      - TZ={{TZ}}
     depends_on:
-      - radarr
-      - sonarr
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
 
   watchtower:
+    image: containrrr/watchtower:latest
     container_name: watchtower
-    image: containrrr/watchtower
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=media"
+      - "com.synology.service=auto-updater"
     networks:
       - vpn-network
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - TZ={{TZ}}
-      - WATCHTOWER_SCHEDULE={{WATCHTOWER_SCHEDULE}}
-      - WATCHTOWER_NOTIFICATION_URL={{WATCHTOWER_NOTIFICATION_URL}}
-      - WATCHTOWER_NO_STARTUP_MESSAGE=true
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_TIMEOUT=30s
+      TZ: {{TZ}}
+      WATCHTOWER_SCHEDULE: {{WATCHTOWER_SCHEDULE}}
+      WATCHTOWER_NOTIFICATION_URL: {{WATCHTOWER_NOTIFICATION_URL}}
+      WATCHTOWER_NO_STARTUP_MESSAGE: "true"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_TIMEOUT: 30s
+      WATCHTOWER_INCLUDE_STOPPED: "false"
+      WATCHTOWER_REVIVE_STOPPED: "false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+networks:
+  vpn-network:
+    driver: bridge
+    name: vpn_network
+    labels:
+      - "com.synology.network=media"
