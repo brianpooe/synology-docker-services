@@ -1,0 +1,116 @@
+# Recyclarr Configuration Template
+# This file should be copied to: {{DOCKERCONFDIR}}/recyclarr/recyclarr.yml
+# Replace {{SONARR_API_KEY}} and {{RADARR_API_KEY}} with your actual API keys
+
+# IMPORTANT: Use Docker service names, NOT localhost!
+# - Use "http://sonarr:8989" not "http://localhost:8989"
+# - Use "http://radarr:7878" not "http://localhost:7878"
+
+# How to get API keys:
+# Sonarr: Settings → General → Security → API Key
+# Radarr: Settings → General → Security → API Key
+
+sonarr:
+  web-1080p-v4:
+    # Use Docker service name for proper container networking
+    base_url: http://sonarr:8989
+    api_key: {{SONARR_API_KEY}}
+    delete_old_custom_formats: true
+    replace_existing_custom_formats: true
+    include:
+      - template: sonarr-quality-definition-series
+      - template: sonarr-v4-quality-profile-web-1080p
+      - template: sonarr-v4-custom-formats-web-1080p
+
+    # Custom Formats
+    custom_formats:
+      # Optional - Uncomment to enable
+      - trash_ids:
+          - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          - 06d66ab109d4d2eddb2794d21526d140 # Retags
+          - 1b3994c551cbb92a2c781af061f4ab44 # Scene
+        assign_scores_to:
+          - name: WEB-1080p
+
+  web-2160p-v4:
+    base_url: http://sonarr:8989
+    api_key: {{SONARR_API_KEY}}
+    delete_old_custom_formats: true
+    replace_existing_custom_formats: true
+    include:
+      - template: sonarr-quality-definition-series
+      - template: sonarr-v4-quality-profile-web-2160p
+      - template: sonarr-v4-custom-formats-web-2160p
+
+    custom_formats:
+      # HDR Formats
+      - trash_ids:
+          # Comment out if all devices are DV compatible
+          - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
+          # Uncomment if devices support HDR10+
+          # - 0dad0a507451acddd754fe6dc3a7f5e7 # HDR10Plus Boost
+        assign_scores_to:
+          - name: WEB-2160p
+
+      - trash_ids:
+          - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          - 06d66ab109d4d2eddb2794d21526d140 # Retags
+          - 1b3994c551cbb92a2c781af061f4ab44 # Scene
+        assign_scores_to:
+          - name: WEB-2160p
+
+radarr:
+  uhd-bluray-web:
+    # Use Docker service name for proper container networking
+    base_url: http://radarr:7878
+    api_key: {{RADARR_API_KEY}}
+    delete_old_custom_formats: true
+    replace_existing_custom_formats: true
+    include:
+      - template: radarr-quality-definition-movie
+      - template: radarr-quality-profile-uhd-bluray-web
+      - template: radarr-custom-formats-uhd-bluray-web
+
+    custom_formats:
+      # Movie Versions
+      - trash_ids:
+          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+            # score: 0 # Uncomment to disable IMAX Enhanced priority
+
+      # Optional - DV settings
+      - trash_ids:
+          # Comment out if all devices are DV compatible
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
+          # Uncomment if devices support HDR10+
+          # - b17886cb4158d9fea189859409975758 # HDR10Plus Boost
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+
+      - trash_ids:
+          - 9c38ebb7384dada637be8899efa68e6f # SDR
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+            # score: 0 # Uncomment to allow SDR releases
+
+  hd-bluray-web:
+    base_url: http://radarr:7878
+    api_key: {{RADARR_API_KEY}}
+    delete_old_custom_formats: true
+    replace_existing_custom_formats: true
+    include:
+      - template: radarr-quality-definition-movie
+      - template: radarr-quality-profile-hd-bluray-web
+      - template: radarr-custom-formats-hd-bluray-web
+
+    custom_formats:
+      - trash_ids:
+          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+        assign_scores_to:
+          - name: HD Bluray + WEB
+            # score: 0 # Uncomment to disable IMAX Enhanced priority
