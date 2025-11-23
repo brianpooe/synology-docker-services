@@ -44,7 +44,7 @@ Complete automated media management with VPN protection and socket-proxy securit
 - **Jellyseerr** - Request management
 - **FlareSolverr** - Captcha solver
 - **Recyclarr** - Quality profile sync (TRaSH Guides)
-- **Watchtower** - Automatic container updates (via socket-proxy)
+- **Diun** - Docker image update notifications (via socket-proxy)
 
 **Features:**
 - ✅ VPN kill-switch for download clients
@@ -74,7 +74,7 @@ HashiCorp Vault for secrets management.
 
 **Features:**
 - ✅ Production-ready configuration
-- ✅ Watchtower disabled for stability
+- ✅ Diun monitors but does not auto-update (safer)
 - ✅ IPC_LOCK capability for security
 - ✅ Health monitoring
 
@@ -101,7 +101,7 @@ All media stack services use socket-proxy for restricted Docker API access:
 - **Internal networks** for service isolation
 - **Resource limits** to prevent DoS
 - **Health checks** for reliability
-- **Watchtower scoping** to limit auto-update scope
+- **Diun monitoring** with label-based filtering
 
 ---
 
@@ -138,8 +138,8 @@ TZ=Africa/Johannesburg
 DOCKERLOGGING_MAXFILE=3
 DOCKERLOGGING_MAXSIZE=10m
 
-# Watchtower (optional)
-WATCHTOWER_SCHEDULE=0 0 4 * * *
+# Diun - Image Update Monitoring
+DIUN_WATCH_SCHEDULE=0 0 4 * * *
 WATCHTOWER_NOTIFICATION_URL=
 WATCHTOWER_SCOPE=
 WATCHTOWER_LABEL_ENABLE=
@@ -227,7 +227,7 @@ docker-compose -f docker-compose.arr-stack.yml up -d
 
 # Verify deployment
 docker ps
-docker logs -f watchtower
+docker logs -f diun
 ```
 
 ### Option 3: Deploy Individual Services
@@ -247,7 +247,7 @@ docker ps
 
 # Check specific service logs
 docker logs socket-proxy
-docker logs watchtower
+docker logs diun
 docker logs gluetun
 
 # Check health status
@@ -257,10 +257,10 @@ docker inspect socket-proxy | grep -A 10 Health
 ### Test Socket-Proxy Security
 ```bash
 # Should work - Watchtower can list containers
-docker exec watchtower wget -qO- http://socket-proxy:2375/containers/json
+docker exec diun wget -qO- http://socket-proxy:2375/containers/json
 
 # Should fail with 403 - exec is blocked
-docker exec watchtower wget -qO- http://socket-proxy:2375/containers/watchtower/exec
+docker exec diun wget -qO- http://socket-proxy:2375/containers/diun/exec
 ```
 
 ### Test VPN Connection
@@ -292,8 +292,8 @@ Total resources if all services running:
 
 ### Update Containers
 ```bash
-# Automatic (via Watchtower)
-# Watchtower runs on schedule defined in WATCHTOWER_SCHEDULE
+# Monitored (via Diun)
+# Diun checks for updates on schedule defined in DIUN_WATCH_SCHEDULE
 
 # Manual update
 docker-compose -f docker-compose.arr-stack.yml pull
@@ -339,7 +339,7 @@ docker-compose -f docker-compose.arr-stack.yml stop
 
 ### Detailed Guides
 - **[Socket-Proxy Security](docs/SOCKET_PROXY.md)** - Docker API security implementation
-- **[Watchtower Configuration](docs/WATCHTOWER.md)** - Automatic updates and Discord notifications
+- **[Diun Configuration](docs/DIUN.md)** - Update monitoring and Discord notifications
 - **[Recyclarr Setup](docs/RECYCLARR.md)** - Quality profile configuration
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Improvements Guide](docs/IMPROVEMENTS.md)** - What changed and why
@@ -378,26 +378,30 @@ base_url: http://sonarr:8989  # ✅ Correct
 base_url: http://localhost:8989  # ❌ Wrong
 ```
 
-#### Watchtower: Cannot update containers
-**Fix:** Check socket-proxy is running:
+#### Diun: Not receiving notifications
+**Fix:** Check socket-proxy is running and Diun can connect:
 ```bash
 docker logs socket-proxy
-docker logs watchtower
+docker logs diun
 ```
 
-#### Watchtower: Discord notification errors
-**Symptoms:** `error initializing router services: unknown service "https"`
+#### Diun: Discord webhook not working
+**Symptoms:** No notifications in Discord channel
 
-**Fix:** Convert Discord webhook URL to Shoutrrr format:
+**Fix:** Use the Discord webhook URL directly (no conversion needed!):
 ```bash
-# Wrong format:
-WATCHTOWER_NOTIFICATION_URL=https://discord.com/api/webhooks/ID/TOKEN
-
-# Correct format:
-WATCHTOWER_NOTIFICATION_URL=discord://TOKEN@ID
+# In .env file:
+DIUN_DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/1234567890/your_token_here
 ```
 
-**See full guide:** [docs/WATCHTOWER.md](docs/WATCHTOWER.md)
+**Verify webhook works:**
+```bash
+curl -X POST "YOUR_WEBHOOK_URL" \
+  -H "Content-Type: application/json" \
+  -d '{"content":"Test notification from Diun setup"}'
+```
+
+**See full guide:** [docs/DIUN.md](docs/DIUN.md)
 
 #### qBittorrent: No connection
 **Fix:** Check Gluetun VPN is connected:
@@ -441,9 +445,9 @@ If upgrading from previous configurations:
 ## 🎯 Best Practices
 
 ### Security
-- ✅ Use socket-proxy for Watchtower (enabled by default)
-- ✅ Enable Watchtower scoping to limit auto-updates
-- ✅ Never expose Watchtower to exclude critical services (Vault, databases)
+- ✅ Use socket-proxy for Diun (enabled by default)
+- ✅ Use label-based monitoring (`diun.enable=true`) to control what's monitored
+- ✅ Diun only monitors - never auto-updates (safer than auto-update tools)
 - ✅ Use strong passwords in `.env`
 - ✅ Never commit `.env` to git
 - ✅ Regularly update containers
