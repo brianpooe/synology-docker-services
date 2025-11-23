@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:latest
+    container_name: socket-proxy
+    restart: unless-stopped
+    labels:
+      - "com.synology.stack=security"
+      - "com.synology.service=docker-api-proxy"
+      - "com.centurylinklabs.watchtower.enable=false"  # Never auto-update this
+    ports:
+      # WARNING: Do NOT expose this port to the internet
+      # Only accessible within Docker networks
+      - "127.0.0.1:2375:2375"  # Bind to localhost only
+    environment:
+      TZ: {{TZ}}
+      LOG_LEVEL: info
+
+      ## Default Granted (Docker Info/Monitoring)
+      EVENTS: 1    # Container events (required for Watchtower)
+      PING: 1      # Health checks
+      VERSION: 1   # Docker version info
+      INFO: 1      # Docker system info
+
+      ## Required for Watchtower
+      CONTAINERS: 1  # Read/write containers (start, stop, create, remove)
+      IMAGES: 1      # Pull images, remove old images
+
+      ## Denied (Security Critical - Watchtower doesn't need these)
+      AUTH: 0          # Authentication endpoints
+      BUILD: 0         # Building images
+      COMMIT: 0        # Committing containers to images
+      CONFIGS: 0       # Docker configs
+      DISTRIBUTION: 0  # Image distribution
+      EXEC: 0          # Execute commands in containers - CRITICAL!
+      GRPC: 0          # gRPC endpoints
+      NETWORKS: 0      # Network management (uses existing networks)
+      NODES: 0         # Swarm nodes
+      PLUGINS: 0       # Plugin management
+      POST: 0          # Unrestricted POST (dangerous)
+      SECRETS: 0       # Docker secrets - CRITICAL!
+      SERVICES: 0      # Swarm services
+      SESSION: 0       # Session management
+      SWARM: 0         # Swarm management
+      SYSTEM: 0        # System-wide operations
+      TASKS: 0         # Swarm tasks
+      VOLUMES: 0       # Volume management (uses existing volumes)
+    volumes:
+      # Socket-proxy gets read-only access
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:2375/version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    # Security hardening
+    read_only: true
+    tmpfs:
+      - /run
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+networks:
+  socket-proxy:
+    driver: bridge
+    name: socket_proxy
+    internal: true  # Not accessible from outside Docker
+    labels:
+      - "com.synology.network=security"

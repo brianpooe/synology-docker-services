@@ -491,8 +491,14 @@ services:
       - "com.synology.service=auto-updater"
     networks:
       - vpn-network
+      # Uncomment if using socket-proxy
+      # - socket-proxy
     environment:
       TZ: {{TZ}}
+      # Socket-proxy configuration (recommended for security)
+      # If using socket-proxy, uncomment the next line and comment out the volumes section below
+      # DOCKER_HOST: tcp://socket-proxy:2375
+
       WATCHTOWER_SCHEDULE: {{WATCHTOWER_SCHEDULE}}
       WATCHTOWER_NOTIFICATION_URL: {{WATCHTOWER_NOTIFICATION_URL}}
       WATCHTOWER_NO_STARTUP_MESSAGE: "true"
@@ -506,7 +512,13 @@ services:
       # Only monitor, don't actually update (set to true for monitoring only)
       WATCHTOWER_MONITOR_ONLY: "false"
     volumes:
+      # Direct socket access (works but less secure)
+      # If using socket-proxy, comment out this line
       - /var/run/docker.sock:/var/run/docker.sock
+    # Uncomment if using socket-proxy
+    # depends_on:
+    #   socket-proxy:
+    #     condition: service_healthy
     deploy:
       resources:
         limits:
@@ -527,3 +539,8 @@ networks:
     name: vpn_network
     labels:
       - "com.synology.network=media"
+
+  # Uncomment if using socket-proxy
+  # socket-proxy:
+  #   external: true
+  #   name: socket_proxy

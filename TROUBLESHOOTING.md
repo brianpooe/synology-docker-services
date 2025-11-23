@@ -243,6 +243,28 @@ watchtower:
        - "com.centurylinklabs.watchtower.enable=false"  # Never auto-update
    ```
 
+5. **Use Socket-Proxy (Recommended for Production)**:
+
+   For maximum security, use a socket-proxy to restrict Docker API access:
+
+   ```yaml
+   socket-proxy:
+     volumes:
+       - /var/run/docker.sock:/var/run/docker.sock:ro  # Read-only!
+     environment:
+       CONTAINERS: 1  # Allow container management
+       IMAGES: 1      # Allow image pulls
+       EXEC: 0        # Deny command execution
+       SECRETS: 0     # Deny secrets access
+
+   watchtower:
+     environment:
+       DOCKER_HOST: tcp://socket-proxy:2375  # Use proxy
+     # No docker.sock volume needed!
+   ```
+
+   **See:** `SOCKET_PROXY_GUIDE.md` for complete implementation guide
+
 **Solution 2: Use Synology's Built-in Container Updates**
 
 Instead of Watchtower, use Synology Container Manager's built-in auto-update feature:
