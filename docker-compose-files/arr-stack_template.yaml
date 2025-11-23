@@ -464,11 +464,11 @@ services:
       emby:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5055/api/v1/status || exit 1"]
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/5055' || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
     deploy:
       resources:
         limits:
