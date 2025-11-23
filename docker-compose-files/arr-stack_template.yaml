@@ -421,11 +421,11 @@ services:
     devices:
       - /dev/dri:/dev/dri
     healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8096/web/index.html || exit 1"]
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8096' || exit 1"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 5
-      start_period: 120s
+      start_period: 180s
     deploy:
       resources:
         limits:
