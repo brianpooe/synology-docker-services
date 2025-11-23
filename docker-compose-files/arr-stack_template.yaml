@@ -403,7 +403,7 @@ services:
         max-size: "{{DOCKERLOGGING_MAXSIZE}}"
 
   jellyseerr:
-    image: hotio/jellyseerr:latest
+    image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
     restart: unless-stopped
     labels:
