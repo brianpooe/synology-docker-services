@@ -180,20 +180,68 @@ config-files/recyclarr/recyclarr.yml.template
 
 #### Issue: Watchtower Permissions on Synology
 
-**Symptom:** Watchtower cannot update containers, shows permission errors.
+**Symptom:** Watchtower cannot update containers, shows permission errors or does nothing.
 
-**Solution 1: Run Watchtower with Elevated Permissions**
+**Important:** Watchtower **requires write access** to `/var/run/docker.sock` to function. While `:ro` (read-only) is more secure, it breaks Watchtower's ability to actually update containers.
 
-In your docker-compose:
+**Correct Configuration:**
 
 ```yaml
 watchtower:
   image: containrrr/watchtower:latest
   volumes:
-    - /var/run/docker.sock:/var/run/docker.sock:ro  # ✅ Read-only is safer
-  # On Synology, you may need:
-  user: root  # Add this if permission errors occur
+    # Must be writable for Watchtower to stop/start containers
+    - /var/run/docker.sock:/var/run/docker.sock
+  environment:
+    # Security mitigation: Limit scope to prevent unintended updates
+    WATCHTOWER_SCOPE: "media-stack"  # Only update containers with this scope label
+    # Or use label-based filtering
+    WATCHTOWER_LABEL_ENABLE: "com.centurylinklabs.watchtower.enable"
+    # Monitor only mode (notifications but no updates)
+    WATCHTOWER_MONITOR_ONLY: "false"  # Set to "true" to disable updates
 ```
+
+**Security Best Practices:**
+
+1. **Use Scoping** - Limit which containers Watchtower can touch:
+   ```yaml
+   environment:
+     WATCHTOWER_SCOPE: "media-stack"
+   ```
+   Then label containers:
+   ```yaml
+   services:
+     radarr:
+       labels:
+         - "com.centurylinklabs.watchtower.scope=media-stack"
+   ```
+
+2. **Use Label Filtering** - Only update containers with specific label:
+   ```yaml
+   environment:
+     WATCHTOWER_LABEL_ENABLE: "com.centurylinklabs.watchtower.enable"
+   ```
+   Then on containers you want updated:
+   ```yaml
+   services:
+     radarr:
+       labels:
+         - "com.centurylinklabs.watchtower.enable=true"
+   ```
+
+3. **Monitor-Only Mode** - Get notifications without auto-updates:
+   ```yaml
+   environment:
+     WATCHTOWER_MONITOR_ONLY: "true"
+     WATCHTOWER_NOTIFICATION_URL: "slack://token"
+   ```
+
+4. **Disable Watchtower for Critical Services**:
+   ```yaml
+   vault:
+     labels:
+       - "com.centurylinklabs.watchtower.enable=false"  # Never auto-update
+   ```
 
 **Solution 2: Use Synology's Built-in Container Updates**
 
