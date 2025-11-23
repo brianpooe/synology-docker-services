@@ -500,8 +500,13 @@ services:
       WATCHTOWER_TIMEOUT: 30s
       WATCHTOWER_INCLUDE_STOPPED: "false"
       WATCHTOWER_REVIVE_STOPPED: "false"
+      # Security: Limit Watchtower's scope (optional but recommended)
+      WATCHTOWER_SCOPE: {{WATCHTOWER_SCOPE}}
+      WATCHTOWER_LABEL_ENABLE: {{WATCHTOWER_LABEL_ENABLE}}
+      # Only monitor, don't actually update (set to true for monitoring only)
+      WATCHTOWER_MONITOR_ONLY: "false"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     deploy:
       resources:
         limits:
