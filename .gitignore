@@ -221,9 +221,6 @@ fabric.properties
 !.idea/runConfigurations
 .env
 
-config-files/**/*
-config-files/**/*_template.{yaml|hcl}
-
 docker-compose-files/*
 !docker-compose-files/*_template.yaml
 # End of https://www.toptal.com/developers/gitignore/api/webstorm+all,webstorm,linux,macos
