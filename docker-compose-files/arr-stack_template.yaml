@@ -458,7 +458,7 @@ services:
       TZ: {{TZ}}
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/jellyseerr:/config
+      - {{DOCKERCONFDIR}}/jellyseerr:/app/config
       - {{DOCKERSTORAGEDIR}}/media:/data/media
     depends_on:
       emby:
