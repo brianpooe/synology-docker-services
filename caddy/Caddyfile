@@ -194,3 +194,9 @@ beszel.home.brianpooe.com {
     reverse_proxy 192.168.10.13:8090
 }
 
+metube.home.brianpooe.com {
+    import common
+    uri strip_prefix metube
+    reverse_proxy 192.168.10.14:8081
+}
+
