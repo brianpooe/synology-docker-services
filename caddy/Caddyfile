@@ -200,3 +200,7 @@ metube.home.brianpooe.com {
     reverse_proxy 192.168.10.14:8081
 }
 
+immich.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.15:2283
+}
