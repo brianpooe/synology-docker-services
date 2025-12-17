@@ -204,3 +204,13 @@ immich.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.15:2283
 }
+
+speedtest.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.16:80
+}
+
+seafile.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.10.17:8085
+}
