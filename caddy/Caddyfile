@@ -210,7 +210,7 @@ speedtest.home.brianpooe.com {
     reverse_proxy 192.168.10.16:80
 }
 
-seafile.home.brianpooe.com {
+gramps.home.brianpooe.com {
     import common
-    reverse_proxy 192.168.10.17:8085
+    reverse_proxy 192.168.10.18:80
 }
