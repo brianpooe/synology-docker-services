@@ -194,10 +194,10 @@ beszel.home.brianpooe.com {
     reverse_proxy 192.168.10.13:8090
 }
 
-metube.home.brianpooe.com {
+ytd.home.brianpooe.com {
     import common
     uri strip_prefix metube
-    reverse_proxy 192.168.10.14:8081
+    reverse_proxy 192.168.10.14:3033
 }
 
 immich.home.brianpooe.com {
@@ -212,5 +212,16 @@ speedtest.home.brianpooe.com {
 
 gramps.home.brianpooe.com {
     import common
-    reverse_proxy 192.168.10.18:80
+    reverse_proxy 192.168.10.18:80 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+    }
+}
+
+seafile.home.brianpooe.com {
+        import common
+        reverse_proxy 192.168.10.17:8005
+    }
 }
