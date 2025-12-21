@@ -5,34 +5,25 @@ services:
     ports:
       - "80:5000"
     environment:
-      GRAMPSWEB_TREE: "My Family Tree"
+      GRAMPSWEB_SECRET_KEY: "{{GRAMPSWEB_SECRET_KEY}}"
+      GRAMPSWEB_USER_DB_URI: "sqlite:////var/lib/gramps/users.sqlite"
       GRAMPSWEB_BASE_URL: "https://gramps.home.brianpooe.com"
       GRAMPSWEB_CELERY_CONFIG__broker_url: "redis://grampsweb_redis:6379/0"
       GRAMPSWEB_CELERY_CONFIG__result_backend: "redis://grampsweb_redis:6379/0"
       GRAMPSWEB_RATELIMIT_STORAGE_URI: redis://grampsweb_redis:6379/1
-      # Google OAuth
-      GRAMPSWEB_OIDC_GOOGLE_CLIENT_ID: "{{GRAMPSWEB_OIDC_GOOGLE_CLIENT_ID}}"
-      GRAMPSWEB_OIDC_GOOGLE_CLIENT_SECRET: "{{GRAMPSWEB_OIDC_GOOGLE_CLIENT_SECRET}}"
-      GRAMPSWEB_OIDC_AUTO_REDIRECT: True # Optional: automatically redirect to SSO login
-      GRAMPSWEB_OIDC_DISABLE_LOCAL_AUTH: True # Optional: disable username/password login
-      # Notifications
-      GRAMPSWEB_EMAIL_HOST: "{{GRAMPSWEB_EMAIL_HOST}}"
-      GRAMPSWEB_EMAIL_PORT: "{{GRAMPSWEB_EMAIL_PORT}}"
-      GRAMPSWEB_EMAIL_USE_TLS: True
-      GRAMPSWEB_EMAIL_HOST_USER: "{{GRAMPSWEB_EMAIL_HOST_USER}}"
-      GRAMPSWEB_EMAIL_HOST_PASSWORD: "{{GRAMPSWEB_EMAIL_HOST_PASSWORD}}"
-      GRAMPSWEB_DEFAULT_FROM_EMAIL: "{{GRAMPSWEB_DEFAULT_FROM_EMAIL}}"
     depends_on:
       - grampsweb_redis
     volumes:
-      - /gramps_users:/app/users # persist user database
-      - /gramps_index:/app/indexdir # persist search index
-      - /gramps_thumb_cache:/app/thumbnail_cache # persist thumbnails
-      - /gramps_cache:/app/cache # persist export and report caches
-      - /gramps_secret:/app/secret # persist flask secret
-      - /gramps_db:/root/.gramps/grampsdb # persist Gramps database
+      - ./gramps_users:/app/users # persist user database
+      - ./gramps_index:/app/indexdir # persist search index
+      - ./gramps_thumb_cache:/app/thumbnail_cache # persist thumbnails
+      - ./gramps_cache:/app/cache # persist export and report caches
+      - ./gramps_secret:/app/secret # persist flask secret
+      - ./gramps_db:/root/.gramps/grampsdb # persist Gramps database
       - /mnt/gramps_media:/app/media # persist media files
-      - /gramps_tmp:/tmp
+      - ./gramps_config/config.cfg:/app/config/config.cfg
+      - ./gramps_data:/var/lib/gramps
+      - ./gramps_tmp:/tmp
   grampsweb_celery:
     !!merge <<: *grampsweb # YAML merge key copying the entire grampsweb service config
     ports: []
