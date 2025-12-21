@@ -1,53 +1,53 @@
 #!/bin/bash
 
-# Hardcoded path to the .env file
+# Configuration
 ENV_FILE=".env"
 
-# Check if enough arguments are provided
+# 1. Validation: Check arguments
 if [[ $# -ne 2 ]]; then
-    echo "Usage: $0 <yml_file> <output_file>"
+    echo "Usage: $0 <source_template_file> <output_destination_file>"
+    echo "Example: $0 config_template.cfg config.cfg"
     exit 1
 fi
 
-# Get the input YAML file and the output file from arguments
-YML_FILE="$1"
+SOURCE_FILE="$1"
 OUTPUT_FILE="$2"
 
-# Check if the YAML file exists
-if [[ ! -f "$YML_FILE" ]]; then
-    echo "Error: Input file '$YML_FILE' does not exist."
+if [[ ! -f "$SOURCE_FILE" ]]; then
+    echo "Error: Source file '$SOURCE_FILE' not found."
     exit 1
 fi
 
-# Check if the .env file exists
-if [[ ! -f "$ENV_FILE" ]]; then
-    echo "Error: .env file '$ENV_FILE' does not exist."
-    exit 1
+# 2. Load .env safely (handles special characters and wildcards like */6)
+if [[ -f "$ENV_FILE" ]]; then
+    while IFS='=' read -r key value || [[ -n "$key" ]]; do
+        # Skip comments and empty lines
+        [[ $key =~ ^#.* ]] || [[ -z $key ]] && continue
+
+        # Trim carriage returns (CRLF) and whitespace
+        key=$(echo "$key" | tr -d '\r' | xargs)
+        value=$(echo "$value" | tr -d '\r' | xargs)
+
+        # Export for Perl to access via %ENV
+        export "$key"="$value"
+    done <"$ENV_FILE"
+else
+    echo "Notice: $ENV_FILE not found; using system environment variables only."
 fi
 
-# Initialize a temporary sed script
-SED_SCRIPT=$(mktemp)
+# 3. Process the template (Handles {{VAR}} and {{VAR:-default}})
+# Works on any file type (cfg, yml, json, txt, etc.)
+perl -pe 's/\{\{(\w+)(?::-(.*?))?\}\}/exists $ENV{$1} ? $ENV{$1} : (defined $2 ? $2 : $&)/ge' "$SOURCE_FILE" >"$OUTPUT_FILE"
 
-# Read the .env file and generate a sed script, ensuring the last line is processed
-while IFS='=' read -r key value || [[ -n "$key" ]]; do
-    # Skip comments and empty lines
-    if [[ $key != \#* ]] && [[ -n $key ]]; then
-        # Escape special characters in the key and value
-        escaped_key=$(printf '%s' "$key" | sed 's/[]\/$*.^[]/\\&/g')
-        escaped_value=$(printf '%s' "$value" | sed 's/[&/]/\\&/g')
-        # Add substitution to the sed script
-        echo "s|{{${escaped_key}}}|${escaped_value}|g" >> "$SED_SCRIPT"
-    fi
-done < "$ENV_FILE"
+# 4. Final Validation: Check for unreplaced placeholders (macOS & Linux compatible)
+MISSING_VARS=$(perl -lne 'print for /\{\{\w+.*?\}\}/g' "$OUTPUT_FILE" | sort -u)
 
-# Debugging: Print generated sed script for verification
-echo "Generated sed script:"
-cat "$SED_SCRIPT"
-
-# Apply the generated sed script to the YAML file
-sed -f "$SED_SCRIPT" "$YML_FILE" > "$OUTPUT_FILE"
-
-# Remove the temporary sed script
-rm -f "$SED_SCRIPT"
-
-echo "Substituted file saved to $OUTPUT_FILE"
+if [[ -n "$MISSING_VARS" ]]; then
+    echo "--------------------------------------------------------"
+    echo "⚠️  WARNING: The following placeholders were not replaced:"
+    echo "$MISSING_VARS"
+    echo "Check if these are defined in $ENV_FILE or have defaults."
+    echo "--------------------------------------------------------"
+else
+    echo "✅ Success: All variables substituted in $OUTPUT_FILE"
+fi
