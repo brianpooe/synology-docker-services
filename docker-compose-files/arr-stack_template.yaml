@@ -99,7 +99,7 @@ services:
         max-size: "{{DOCKERLOGGING_MAXSIZE}}"
 
   qbittorrent:
-    image: linuxserver/qbittorrent:latest
+    image: ghcr.io/hotio/qbittorrent:latest
     container_name: qbittorrent
     network_mode: "service:gluetun"
     restart: unless-stopped
@@ -420,6 +420,8 @@ services:
       - {{DOCKERSTORAGEDIR}}/media:/data/media:rw
     devices:
       - /dev/dri:/dev/dri
+    group_add:
+      - "937"
     healthcheck:
       test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8096' || exit 1"]
       interval: 30s
@@ -429,7 +431,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 3G # Reduced from 4G; 3G is plenty for a 128MB DB cache + OS overhead [cite: 73, 121]
         reservations:
           memory: 1G
     security_opt:
@@ -452,30 +454,27 @@ services:
       - vpn-network
     ports:
       - "5055:5055"
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
     environment:
       PUID: {{PUID}}
       PGID: {{PGID}}
       TZ: {{TZ}}
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/jellyseerr:/app/config
+      - {{DOCKERCONFDIR}}/jellyseerr:/config
       - {{DOCKERSTORAGEDIR}}/media:/data/media
     depends_on:
       emby:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1"]
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/5055' || exit 1"]
       interval: 30s
-      timeout: 15s
+      timeout: 5s
       retries: 5
       start_period: 90s
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 512M
         reservations:
           memory: 128M
     security_opt:
