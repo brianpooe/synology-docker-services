@@ -108,6 +108,13 @@ pihole.home.brianpooe.com {
 nas.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.24:5000
+
+    # Specific handling for WebDAV paths
+    # WebDAV requires specific methods that Caddy handles well by default,
+    # but we point it to the WebDAV port (5006)
+    handle /dav/* {
+        reverse_proxy 192.168.10.24:5006
+    }
 }
 
 emby.home.brianpooe.com {
