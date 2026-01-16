@@ -15,6 +15,27 @@ sonarr:
       - template: sonarr-v4-quality-profile-web-2160p
       - template: sonarr-v4-custom-formats-web-2160p
     custom_formats:
+      # -----------------------------------------------------------
+      # LANGUAGE PRIORITIES (New Additions)
+      # -----------------------------------------------------------
+      - trash_ids:
+          - 185f1c5d3152643a6d71f547c1184a44 # Language: English
+        assign_scores_to:
+          - name: WEB-1080p
+            score: 100
+          - name: WEB-2160p
+            score: 100
+      - trash_ids:
+          - 2f22d89e6c60e914755b933cc483786e # Language: Not English (Blocks foreign)
+        assign_scores_to:
+          - name: WEB-1080p
+            score: -10000
+          - name: WEB-2160p
+            score: -10000
+
+      # -----------------------------------------------------------
+      # EXISTING SETTINGS
+      # -----------------------------------------------------------
       - trash_ids:
           - 32b367365729d530ca1c124a0b180c64
           - 82d40da2bc6923f41e14394075dd4b03
@@ -59,6 +80,20 @@ radarr:
       - template: radarr-quality-profile-hd-bluray-web
       - template: radarr-custom-formats-hd-bluray-web
     custom_formats:
+      # -----------------------------------------------------------
+      # LANGUAGE PRIORITIES (New Additions)
+      # -----------------------------------------------------------
+      - trash_ids:
+          - c295792afccd6e46d1bf5eb427042a92 # Language: English
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+            score: 100
+          - name: HD Bluray + WEB
+            score: 100
+
+      # -----------------------------------------------------------
+      # EXISTING SETTINGS
+      # -----------------------------------------------------------
       - trash_ids:
           - 9f6cbff8cfe4ebbc1bde14c7b7bec0de
         assign_scores_to:
