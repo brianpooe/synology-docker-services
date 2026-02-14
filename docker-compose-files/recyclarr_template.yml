@@ -15,36 +15,15 @@ sonarr:
       - template: sonarr-v4-quality-profile-web-2160p
       - template: sonarr-v4-custom-formats-web-2160p
     custom_formats:
+      # Language: Not English (TRaSH). Reverse scoring to block non-English audio.
+      # Source: https://trash-guides.info/Radarr/Tips/How-to-setup-language-custom-formats/
       - trash_ids:
-          - 32b367365729d530ca1c124a0b180c64
-          - 82d40da2bc6923f41e14394075dd4b03
-          - e1a997ddb54e3ecbfe06341ad323c458
-          - 06d66ab109d4d2eddb2794d21526d140
-          - 1b3994c551cbb92a2c781af061f4ab44
+          - 0dc8aec3bd1c47cd6c40c46ecd27e846
         assign_scores_to:
           - name: WEB-1080p
             score: -10000
           - name: WEB-2160p
             score: -10000
-      - trash_ids:
-          - e0c07d59beb37348e975a930d5e50319
-        assign_scores_to:
-          - name: WEB-1080p
-            score: 20
-          - name: WEB-2160p
-            score: 20
-      - trash_ids:
-          - 418f50b10f1907201b6cfdf881f467b7
-        assign_scores_to:
-          - name: WEB-1080p
-            score: 50
-          - name: WEB-2160p
-            score: 50
-      - trash_ids:
-          - 9b27ab6498ec0f31a3353992e19434ca
-        assign_scores_to:
-          - name: WEB-2160p
-            score: 20
 
 radarr:
   radarr-main:
@@ -59,27 +38,12 @@ radarr:
       - template: radarr-quality-profile-hd-bluray-web
       - template: radarr-custom-formats-hd-bluray-web
     custom_formats:
+      # Language: Not English (TRaSH). Reverse scoring to block non-English audio.
+      # Source: https://trash-guides.info/Radarr/Tips/How-to-setup-language-custom-formats/
       - trash_ids:
-          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de
+          - 0dc8aec3bd1c47cd6c40c46ecd27e846
         assign_scores_to:
           - name: UHD Bluray + WEB
-            score: 30
+            score: -10000
           - name: HD Bluray + WEB
-            score: 30
-      - trash_ids:
-          - 923b6abef9b17f937fab56cfcf89e1f1
-        assign_scores_to:
-          - name: UHD Bluray + WEB
-            score: 20
-      - trash_ids:
-          - 9c38ebb7384dada637be8899efa68e6f
-        assign_scores_to:
-          - name: UHD Bluray + WEB
-            score: -50
-      - trash_ids:
-          - 4b900e171accbfb172729b63323ea8ca
-        assign_scores_to:
-          - name: UHD Bluray + WEB
-            score: -10
-          - name: HD Bluray + WEB
-            score: -10
+            score: -10000
