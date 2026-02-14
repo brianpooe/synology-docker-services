@@ -83,7 +83,7 @@ HashiCorp Vault for secrets management.
 ## 🔒 Security Features
 
 ### Socket-Proxy Integration
-All media stack services use socket-proxy for restricted Docker API access:
+Diun uses socket-proxy for restricted Docker API access:
 
 | Feature | Traditional | With Socket-Proxy |
 |---------|------------|-------------------|
@@ -140,9 +140,7 @@ DOCKERLOGGING_MAXSIZE=10m
 
 # Diun - Image Update Monitoring
 DIUN_WATCH_SCHEDULE=0 0 4 * * *
-WATCHTOWER_NOTIFICATION_URL=
-WATCHTOWER_SCOPE=
-WATCHTOWER_LABEL_ENABLE=
+DIUN_DISCORD_WEBHOOK_URL=
 
 # VPN Configuration
 VPN_SERVICE_PROVIDER=airvpn
@@ -171,8 +169,8 @@ id $USER
 Copy and configure Recyclarr for quality profile management:
 
 ```bash
-# Copy template
-cp RECYCLARR_CONFIG_TEMPLATE.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
+# Generate config from template
+./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
 
 # Edit with your API keys
 nano /volume1/docker/appdata/recyclarr/recyclarr.yml
@@ -256,7 +254,7 @@ docker inspect socket-proxy | grep -A 10 Health
 
 ### Test Socket-Proxy Security
 ```bash
-# Should work - Watchtower can list containers
+# Should work - Diun can list containers
 docker exec diun wget -qO- http://socket-proxy:2375/containers/json
 
 # Should fail with 403 - exec is blocked
@@ -281,8 +279,7 @@ Total resources if all services running:
 
 | Resource | Reserved | Limit | Notes |
 |----------|----------|-------|-------|
-| CPU | 4.6 cores | 19.5 cores | Adjust based on your NAS |
-| Memory | 4.44 GB | 18.75 GB | Minimum 8GB RAM recommended |
+| Memory | 4.00 GB | 15.00 GB | CPU limits are intentionally omitted for DSM compatibility |
 
 **Per-service limits configured to prevent resource exhaustion**
 
@@ -498,6 +495,6 @@ This project is provided as-is for personal and educational use.
 
 ---
 
-**Last Updated:** 2025-11-23
-**Version:** 2.0
+**Last Updated:** 2026-02-14
+**Version:** 2.1
 **Compatibility:** Synology DSM 7.x, Docker Compose 1.27.0+

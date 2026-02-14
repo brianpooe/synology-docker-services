@@ -90,7 +90,7 @@ DIUN_DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_T
 ### Step 4: Restart Diun
 
 ```bash
-docker-compose restart diun
+docker-compose -f docker-compose.arr-stack.yml restart diun
 ```
 
 Check logs to verify:
@@ -339,8 +339,8 @@ If you're migrating from Watchtower:
 ### 1. Remove Watchtower
 
 ```bash
-docker-compose stop watchtower
-docker-compose rm watchtower
+docker-compose -f docker-compose.arr-stack.yml stop watchtower
+docker-compose -f docker-compose.arr-stack.yml rm watchtower
 ```
 
 ### 2. Update .env
@@ -370,8 +370,8 @@ Are NOT used by Diun. The template already has `diun.enable=true` labels.
 ### 4. Deploy Diun
 
 ```bash
-./substitute_env.sh arr-stack
-docker-compose up -d
+./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
+docker-compose -f docker-compose.arr-stack.yml up -d
 ```
 
 ### 5. Verify
@@ -463,7 +463,7 @@ docker logs diun
 docker logs -f diun
 
 # Restart Diun
-docker-compose restart diun
+docker-compose -f docker-compose.arr-stack.yml restart diun
 
 # Force check now
 docker exec diun diun exec
@@ -516,3 +516,7 @@ labels:
   - "diun.enable=true"
   - "diun.max_diff_hours=24"
 ```
+
+---
+
+**Last Updated:** 2026-02-14

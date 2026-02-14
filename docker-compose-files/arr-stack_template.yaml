@@ -21,7 +21,7 @@ services:
       PGID: {{PGID}}
       TZ: {{TZ}}
       CONTAINERS: 1
-      POST: 1
+      POST: 0
       IMAGES: 1
       NETWORKS: 0
       SERVICES: 0
@@ -69,7 +69,7 @@ services:
     volumes:
       - {{DOCKERCONFDIR}}/gluetun:/gluetun
     environment:
-      VPN_SERVICE_PROVIDER: airvpn
+      VPN_SERVICE_PROVIDER: {{VPN_SERVICE_PROVIDER:-airvpn}}
       VPN_TYPE: wireguard
       WIREGUARD_PRIVATE_KEY: {{WIREGUARD_PRIVATE_KEY}}
       WIREGUARD_PRESHARED_KEY: {{WIREGUARD_PRESHARED_KEY}}

@@ -8,7 +8,7 @@ Recyclarr automatically synchronizes TRaSH Guides quality profiles and custom fo
 
 ```bash
 # Copy the template to your recyclarr config directory
-cp RECYCLARR_CONFIG_TEMPLATE.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
+./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
 
 # Edit with your API keys
 nano /volume1/docker/appdata/recyclarr/recyclarr.yml
@@ -314,7 +314,7 @@ docker exec recyclarr recyclarr sync sonarr web-1080p-v4
 
 ### Update Recyclarr
 
-Recyclarr is updated automatically by Watchtower (if enabled).
+Recyclarr updates are reported by Diun. Apply image updates manually after review.
 
 Manual update:
 ```bash
@@ -409,4 +409,4 @@ sonarr:
 
 ---
 
-**Last Updated:** 2025-11-23
+**Last Updated:** 2026-02-14

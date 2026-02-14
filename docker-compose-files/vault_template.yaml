@@ -10,7 +10,7 @@ services:
     container_name: vault
     restart: unless-stopped
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "diun.enable=true"
       - "com.synology.stack=security"
       - "com.synology.service=secrets-manager"
     ports:
@@ -18,7 +18,7 @@ services:
       - "8201:8201"
     environment:
       TZ: {{TZ}}
-      VAULT_ADDR: https://0.0.0.0:8200
+      VAULT_ADDR: https://127.0.0.1:8200
       VAULT_LOG_LEVEL: info
       VAULT_SKIP_VERIFY: "false"
     volumes:
@@ -30,7 +30,7 @@ services:
     networks:
       - vault_network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider https://localhost:8200/v1/sys/health || exit 1"]
+      test: ["CMD-SHELL", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:8200/v1/sys/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

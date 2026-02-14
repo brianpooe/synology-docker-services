@@ -5,9 +5,9 @@ services:
     ports:
       - "80:5000"
     environment:
-      GRAMPSWEB_SECRET_KEY: "{{GRAMPSWEB_SECRET_KEY}}"
-      GRAMPSWEB_USER_DB_URI: "sqlite:////var/lib/gramps/users.sqlite"
-      GRAMPSWEB_BASE_URL: "https://gramps.home.brianpooe.com"
+      GRAMPSWEB_SECRET_KEY: "{{SECRET_KEY}}"
+      GRAMPSWEB_USER_DB_URI: "{{USER_DB_URI}}"
+      GRAMPSWEB_BASE_URL: "{{BASE_URL}}"
       GRAMPSWEB_CELERY_CONFIG__broker_url: "redis://grampsweb_redis:6379/0"
       GRAMPSWEB_CELERY_CONFIG__result_backend: "redis://grampsweb_redis:6379/0"
       GRAMPSWEB_RATELIMIT_STORAGE_URI: redis://grampsweb_redis:6379/1

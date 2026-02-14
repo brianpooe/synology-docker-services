@@ -9,15 +9,14 @@
     }
     header {
         # Enable HSTS
-        Strict-Transport-Security "max-age=31536000; includeSubdomains; preload"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         X-XSS-Protection 0
         # Prevent browsers from incorrectly detecting non-scripts as scripts and MIME type sniffing
         X-Content-Type-Options nosniff
         Referrer-Policy same-origin
         -Server
-        # Enable cross-site filter (XSS) and tell browser to block detected attacks
-        X-Frame-Options "ALLOW-FROM *.home.brianpooe.com"
-        Permissions-Policy "geolocation=(self  *.home.brianpooe.com), microphone=(), interest-cohort=()"
+        X-Frame-Options "SAMEORIGIN"
+        Permissions-Policy "geolocation=(self), microphone=(), camera=(), interest-cohort=()"
         import content-security-general
     }
 }
@@ -25,7 +24,7 @@
 (content-security-general) { # Default setup
     # Disable unsafe inline/eval and plugins, only load scripts and stylesheets from same origin, fonts from google,
     #   and images from same origin and imgur. Sites should aim for policies like this.
-    Content-Security-Policy "frame-ancestors  *.home.brianpooe.com"
+    Content-Security-Policy "frame-ancestors 'self' https://*.home.brianpooe.com"
     #"default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self'; form-action 'self'; connect-src 'self'; frame-ancestors 'none';"
     #default-src 'none'; font-src https://fonts.gstatic.com; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self'; style-src 'self'
 }
@@ -225,7 +224,6 @@ gramps.home.brianpooe.com {
 }
 
 seafile.home.brianpooe.com {
-        import common
-        reverse_proxy 192.168.10.17:8005
-    }
+    import common
+    reverse_proxy 192.168.10.17:8005
 }
