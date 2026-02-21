@@ -229,7 +229,3 @@ gramps.home.brianpooe.com {
     reverse_proxy 192.168.10.18:80
 }
 
-seafile.home.brianpooe.com {
-    import common
-    reverse_proxy 192.168.10.17:8005
-}
