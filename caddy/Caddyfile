@@ -153,9 +153,15 @@ sabnzbd.home.brianpooe.com {
     reverse_proxy 192.168.10.24:8282
 }
 
-jellyseerr.home.brianpooe.com {
+seerr.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.24:5055
+}
+
+# Legacy hostname redirect for old bookmarks
+jellyseerr.home.brianpooe.com {
+    import common
+    redir https://seerr.home.brianpooe.com{uri} permanent
 }
 
 flaresolverr.home.brianpooe.com {
