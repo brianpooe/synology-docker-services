@@ -12,6 +12,9 @@ You can replace most manual CNAMEs with:
 
 This removes the need to add a new DNS record every time you add a new proxied service.
 
+Technitium UI tip:
+- When editing records inside zone `home.brianpooe.com`, use relative names (`caddy`, `*`) rather than full FQDN labels.
+
 ## Wildcard caveats (important)
 - Wildcard does not cover the zone apex itself (`home.brianpooe.com`).
 - Explicit records still override wildcard (this is good; you can keep special cases).
@@ -60,8 +63,12 @@ A wildcard record closes this drift gap permanently.
 
 #### Model A: wildcard-first (recommended)
 Create only these core records first:
-- `A` `caddy.home.brianpooe.com` -> `192.168.10.5`
-- `CNAME` `*.home.brianpooe.com` -> `caddy.home.brianpooe.com`
+- `A` record inside zone `home.brianpooe.com`:
+  - Name: `caddy` (FQDN `caddy.home.brianpooe.com`)
+  - Address: `192.168.10.5`
+- `CNAME` record inside zone `home.brianpooe.com`:
+  - Name: `*` (FQDN `*.home.brianpooe.com`)
+  - Target: `caddy.home.brianpooe.com`
 
 Optional explicit records for readability (not required if wildcard exists):
 - `CNAME` `pihole.home.brianpooe.com` -> `caddy.home.brianpooe.com`

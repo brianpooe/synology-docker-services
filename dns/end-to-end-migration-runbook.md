@@ -60,8 +60,12 @@ Reference:
    - `http://192.168.60.6:5380`
 2. Create primary zone `home.brianpooe.com`.
 3. Add:
-   - `A` record: `caddy.home.brianpooe.com -> 192.168.10.5`
-   - wildcard `CNAME`: `*.home.brianpooe.com -> caddy.home.brianpooe.com`
+   - `A` record inside that zone:
+     - Name: `caddy` (FQDN: `caddy.home.brianpooe.com`)
+     - Address: `192.168.10.5`
+   - wildcard `CNAME` inside that zone:
+     - Name: `*` (FQDN: `*.home.brianpooe.com`)
+     - Target: `caddy.home.brianpooe.com`
 4. Configure blocklist:
    - `https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts`
 5. Add allowlist entry:

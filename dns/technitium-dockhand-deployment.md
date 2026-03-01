@@ -55,8 +55,12 @@ Open:
 
 Then configure:
 1. Create primary zone `home.brianpooe.com`.
-2. Add `A` record: `caddy.home.brianpooe.com -> 192.168.10.5`.
-3. Add wildcard `CNAME`: `*.home.brianpooe.com -> caddy.home.brianpooe.com`.
+2. Add `A` record inside that zone:
+   - Name: `caddy` (FQDN: `caddy.home.brianpooe.com`)
+   - Address: `192.168.10.5`
+3. Add wildcard `CNAME` inside that zone:
+   - Name: `*` (FQDN: `*.home.brianpooe.com`)
+   - Target: `caddy.home.brianpooe.com`
 4. Add allowlist equivalent for `www.googleadservices.com`.
 
 Reference details:
