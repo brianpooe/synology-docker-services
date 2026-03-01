@@ -38,8 +38,10 @@ Expected:
    - `DNS_BIND_IP=192.168.60.6` (temporary during staging)
    - `TECHNITIUM_ADMIN_PASSWORD=<strong-password>`
    - `DOCKHAND_ENCRYPTION_KEY=<long-random-string>`
+   - `TECHNITIUM_CONFIG_DIR=./appdata/technitium`
+   - `DOCKHAND_DATA_DIR=./appdata/dockhand`
    - `DOCKER_GID=<docker.sock group id>`
-   - `DOCKHAND_STACKS_DIR=<path you want Dockhand to manage>`
+   - `DOCKHAND_STACKS_DIR=./stacks` (or local path you want Dockhand to manage)
 2. Render the compose from template:
 ```bash
 ./substitute_env.sh docker-compose-files/technitium-dockhand_template.yaml docker-compose-files/technitium-dockhand.yaml .env

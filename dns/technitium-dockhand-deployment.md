@@ -12,7 +12,9 @@ Update your `.env` with these required values:
 - `DNS_BIND_IP=192.168.60.5`
 - `TECHNITIUM_ADMIN_PASSWORD=<strong-password>`
 - `DOCKHAND_ENCRYPTION_KEY=<long-random-string>`
-- `DOCKHAND_STACKS_DIR=<host path containing compose files>`
+- `TECHNITIUM_CONFIG_DIR=./appdata/technitium`
+- `DOCKHAND_DATA_DIR=./appdata/dockhand`
+- `DOCKHAND_STACKS_DIR=./stacks` (or any local host path containing compose files)
 - `DOCKER_GID=<docker.sock group id>`
 
 For 2GB Pi 4 (recommended defaults already in `.env.sample`):
@@ -23,6 +25,12 @@ For 2GB Pi 4 (recommended defaults already in `.env.sample`):
 
 Tip:
 - `DOCKER_GID` command: `stat -c '%g' /var/run/docker.sock`
+- Relative bind paths (like `./appdata/...`) are resolved from the folder containing the rendered compose file (`docker-compose-files/`).
+
+Create local bind-mount folders:
+```bash
+mkdir -p docker-compose-files/appdata/technitium docker-compose-files/appdata/dockhand docker-compose-files/stacks
+```
 
 ## 2) Render compose from template
 Run:

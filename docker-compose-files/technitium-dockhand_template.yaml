@@ -1,9 +1,4 @@
 version: '3.8'
-
-# Technitium DNS + Dockhand stack
-# - Technitium replaces Pi-hole + Unbound behavior (blocking + recursion)
-# - Dockhand manages container stacks from a web UI
-
 services:
   technitium-dns:
     image: technitium/dns-server:latest
@@ -34,7 +29,8 @@ services:
       DNS_SERVER_WEB_SERVICE_HTTP_PORT: "{{TECHNITIUM_WEB_CONTAINER_PORT:-5380}}"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/technitium:/etc/dns
+      # Local persistent config path for Raspberry Pi deployments
+      - {{TECHNITIUM_CONFIG_DIR:-./appdata/technitium}}:/etc/dns
     ports:
       # Core DNS service
       - "{{DNS_BIND_IP:-0.0.0.0}}:53:53/udp"
@@ -73,8 +69,10 @@ services:
       - "{{DOCKER_GID:-999}}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - {{DOCKERCONFDIR}}/dockhand:/opt/dockhand
-      - {{DOCKHAND_STACKS_DIR:-/opt/stacks}}:/opt/stacks
+      # Local persistent config path for Raspberry Pi deployments
+      - {{DOCKHAND_DATA_DIR:-./appdata/dockhand}}:/opt/dockhand
+      # Host folder containing compose stacks Dockhand should manage
+      - {{DOCKHAND_STACKS_DIR:-./stacks}}:/opt/stacks
     ports:
       - "{{DOCKHAND_BIND_IP:-0.0.0.0}}:{{DOCKHAND_PORT:-3000}}:3000/tcp"
     mem_limit: "{{DOCKHAND_MEM_LIMIT:-256m}}"
