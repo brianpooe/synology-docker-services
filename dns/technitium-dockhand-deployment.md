@@ -1,7 +1,7 @@
 # Technitium + Dockhand Docker Deployment Guide
 
 This guide deploys Technitium DNS and Dockhand using:
-- `/Users/luda/Documents/synology-docker-services/docker-compose-files/technitium-dockhand_template.yaml`
+- [technitium-dockhand_template.yaml](../docker-compose-files/technitium-dockhand_template.yaml)
 
 Compatibility note:
 - Dockhand image in this stack is `fnsys/dockhand:latest` and should be run on 64-bit Linux (`arm64` on Pi 4).
@@ -64,16 +64,16 @@ Then configure:
 4. Add allowlist equivalent for `www.googleadservices.com`.
 
 Reference details:
-- `/Users/luda/Documents/synology-docker-services/dns/technitium-cutover-checklist.md`
+- [technitium-cutover-checklist.md](./technitium-cutover-checklist.md)
 
 ## 5) pfSense integration
 Keep DNS server IP as `192.168.60.5` to avoid changing existing DHCP and firewall dependencies.
 
 For forced DNS across all VLANs:
-- `/Users/luda/Documents/synology-docker-services/dns/pfsense-forced-dns-quick-entry.md`
+- [pfsense-forced-dns-quick-entry.md](./pfsense-forced-dns-quick-entry.md)
 
 For DoT/DoH hardening:
-- `/Users/luda/Documents/synology-docker-services/dns/pfsense-dot-doh-blocking-quick-entry.md`
+- [pfsense-dot-doh-blocking-quick-entry.md](./pfsense-dot-doh-blocking-quick-entry.md)
 
 ## 6) Validation
 Run from clients on each VLAN:

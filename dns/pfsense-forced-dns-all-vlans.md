@@ -109,7 +109,7 @@ flowchart LR
 
 ## Fast entry version
 If you want one block per interface for direct UI entry, use:
-- `/Users/luda/Documents/synology-docker-services/dns/pfsense-forced-dns-quick-entry.md`
+- [pfsense-forced-dns-quick-entry.md](./pfsense-forced-dns-quick-entry.md)
 
 Related hardening quick-entry:
-- `/Users/luda/Documents/synology-docker-services/dns/pfsense-dot-doh-blocking-quick-entry.md`
+- [pfsense-dot-doh-blocking-quick-entry.md](./pfsense-dot-doh-blocking-quick-entry.md)

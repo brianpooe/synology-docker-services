@@ -8,7 +8,7 @@ Use this as the single flow document. Each step links to the deeper guide where 
    - Pi-hole teleporter tarball
 2. Keep the old Pi Zero 2 W untouched until final cutover is stable.
 3. Review your analyzed current-state map:
-   - [Current architecture analysis](/Users/luda/Documents/synology-docker-services/dns/pfsense-pihole-technitium-analysis.md)
+   - [pfsense-pihole-technitium-analysis.md](./pfsense-pihole-technitium-analysis.md)
 
 ## 2) Prepare the new Pi 4 with a temporary DNS IP
 1. Connect Pi 4 to the same Adblock VLAN (`192.168.60.0/24`).
@@ -52,8 +52,8 @@ docker compose -f docker-compose-files/technitium-dockhand.yaml up -d
 ```
 
 Reference:
-- [Technitium + Dockhand deployment guide](/Users/luda/Documents/synology-docker-services/dns/technitium-dockhand-deployment.md)
-- [Compose template](/Users/luda/Documents/synology-docker-services/docker-compose-files/technitium-dockhand_template.yaml)
+- [technitium-dockhand-deployment.md](./technitium-dockhand-deployment.md)
+- [technitium-dockhand_template.yaml](../docker-compose-files/technitium-dockhand_template.yaml)
 
 ## 4) Configure Technitium to mirror current behavior
 1. Open Technitium UI on Pi 4 temporary IP:
@@ -72,7 +72,7 @@ Reference:
    - `www.googleadservices.com`
 
 Reference:
-- [Technitium cutover checklist](/Users/luda/Documents/synology-docker-services/dns/technitium-cutover-checklist.md)
+- [technitium-cutover-checklist.md](./technitium-cutover-checklist.md)
 
 ## 5) Pre-cutover validation on temporary IP
 From clients (or directly from Pi 4), validate against `192.168.60.6`:
@@ -88,13 +88,13 @@ If these fail, do not proceed to IP swap.
 If not already done, apply forced DNS interception for LAN + VLANs.
 
 Reference (fast entry):
-- [Forced DNS quick entry](/Users/luda/Documents/synology-docker-services/dns/pfsense-forced-dns-quick-entry.md)
+- [pfsense-forced-dns-quick-entry.md](./pfsense-forced-dns-quick-entry.md)
 
 Reference (full explanation):
-- [Forced DNS all VLANs](/Users/luda/Documents/synology-docker-services/dns/pfsense-forced-dns-all-vlans.md)
+- [pfsense-forced-dns-all-vlans.md](./pfsense-forced-dns-all-vlans.md)
 
 Optional hardening for encrypted DNS bypass:
-- [DoT/DoH blocking quick entry](/Users/luda/Documents/synology-docker-services/dns/pfsense-dot-doh-blocking-quick-entry.md)
+- [pfsense-dot-doh-blocking-quick-entry.md](./pfsense-dot-doh-blocking-quick-entry.md)
 
 ## 7) Safe same-IP handover (make Pi 4 become `192.168.60.5`)
 1. Schedule a short maintenance window.

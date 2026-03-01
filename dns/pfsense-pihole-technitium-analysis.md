@@ -180,4 +180,4 @@ flowchart LR
 
 ## Companion runbook
 For step-by-step cutover execution and wildcard-vs-explicit record strategy, see:
-- `/Users/luda/Documents/synology-docker-services/dns/technitium-cutover-checklist.md`
+- [technitium-cutover-checklist.md](./technitium-cutover-checklist.md)

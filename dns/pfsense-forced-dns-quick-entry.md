@@ -138,4 +138,4 @@ Minimum extra control:
 - Add block rules for outbound TCP/UDP `853` on LAN/OPT2/OPT3/OPT4/OPT5/OPT6.
 
 Related hardening quick-entry:
-- `/Users/luda/Documents/synology-docker-services/dns/pfsense-dot-doh-blocking-quick-entry.md`
+- [pfsense-dot-doh-blocking-quick-entry.md](./pfsense-dot-doh-blocking-quick-entry.md)

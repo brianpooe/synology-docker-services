@@ -1,7 +1,7 @@
 # Technitium Cutover Checklist (From Current pfSense + Pi-hole)
 
 Start-here master flow:
-- `/Users/luda/Documents/synology-docker-services/dns/end-to-end-migration-runbook.md`
+- [end-to-end-migration-runbook.md](./end-to-end-migration-runbook.md)
 
 ## Short answer: do you need 26 CNAME records?
 No, not if all your app hostnames should resolve to Caddy.
@@ -44,8 +44,8 @@ A wildcard record closes this drift gap permanently.
 ## Cutover plan
 
 ### Docker stack files in this repo
-- Compose template: `/Users/luda/Documents/synology-docker-services/docker-compose-files/technitium-dockhand_template.yaml`
-- Deployment guide: `/Users/luda/Documents/synology-docker-services/dns/technitium-dockhand-deployment.md`
+- Compose template: [technitium-dockhand_template.yaml](../docker-compose-files/technitium-dockhand_template.yaml)
+- Deployment guide: [technitium-dockhand-deployment.md](./technitium-dockhand-deployment.md)
 
 ### 1. Keep network references stable
 - Keep Technitium service IP as `192.168.60.5`.
@@ -158,6 +158,6 @@ flowchart LR
 
 ## Related pfSense enforcement runbook
 For exact NAT/firewall settings to force DNS across LAN + VLANs, see:
-- `/Users/luda/Documents/synology-docker-services/dns/pfsense-forced-dns-all-vlans.md`
-- `/Users/luda/Documents/synology-docker-services/dns/pfsense-forced-dns-quick-entry.md`
-- `/Users/luda/Documents/synology-docker-services/dns/pfsense-dot-doh-blocking-quick-entry.md`
+- [pfsense-forced-dns-all-vlans.md](./pfsense-forced-dns-all-vlans.md)
+- [pfsense-forced-dns-quick-entry.md](./pfsense-forced-dns-quick-entry.md)
+- [pfsense-dot-doh-blocking-quick-entry.md](./pfsense-dot-doh-blocking-quick-entry.md)
