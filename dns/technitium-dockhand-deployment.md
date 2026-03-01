@@ -6,6 +6,7 @@ This guide deploys Technitium DNS and Dockhand using:
 Compatibility note:
 - Dockhand image in this stack is `fnsys/dockhand:latest` and should be run on 64-bit Linux (`arm64` on Pi 4).
 - 2GB RAM Pi 4 is supported with the included memory caps in the compose template.
+- This template hardcodes `PUID=1000`, `PGID=1000`, `max-file=3`, and `max-size=10m` for Pi-local use.
 
 ## 1) Prepare env values
 Update your `.env` with these required values:

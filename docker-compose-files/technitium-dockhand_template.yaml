@@ -47,8 +47,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: "{{DOCKERLOGGING_MAXFILE}}"
-        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+        max-file: "3"
+        max-size: "10m"
 
   dockhand:
     image: fnsys/dockhand:latest
@@ -63,8 +63,8 @@ services:
       ENCRYPTION_KEY: "{{DOCKHAND_ENCRYPTION_KEY}}"
       PORT: "3000"
       DATA_DIR: "/opt/dockhand"
-      PUID: "{{PUID}}"
-      PGID: "{{PGID}}"
+      PUID: "1000"
+      PGID: "1000"
     group_add:
       - "{{DOCKER_GID:-999}}"
     volumes:
@@ -82,5 +82,5 @@ services:
     logging:
       driver: json-file
       options:
-        max-file: "{{DOCKERLOGGING_MAXFILE}}"
-        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+        max-file: "3"
+        max-size: "10m"
