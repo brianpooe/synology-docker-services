@@ -37,7 +37,7 @@ Expected:
 1. Fill required values in `.env` (or environment file you use):
    - `DNS_BIND_IP=192.168.60.6` (temporary during staging)
    - `TECHNITIUM_ADMIN_PASSWORD=<strong-password>`
-   - `DOCKHAND_ENCRYPTION_KEY=<long-random-string>`
+   - `DOCKHAND_ENCRYPTION_KEY=<base64 key from openssl rand -base64 32>`
    - `TECHNITIUM_CONFIG_DIR=./appdata/technitium`
    - `DOCKHAND_DATA_DIR=./appdata/dockhand`
    - `DOCKER_GID=<docker.sock group id>`
