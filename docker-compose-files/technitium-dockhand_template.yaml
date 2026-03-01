@@ -44,6 +44,8 @@ services:
       # Optional encrypted DNS listeners (enable only if you intend to use them)
       # - "{{DNS_BIND_IP:-0.0.0.0}}:853:853/tcp"  # DoT
       # - "{{DNS_BIND_IP:-0.0.0.0}}:443:443/tcp"  # DoH
+    mem_limit: "{{TECHNITIUM_MEM_LIMIT:-512m}}"
+    mem_reservation: "{{TECHNITIUM_MEM_RESERVATION:-192m}}"
     security_opt:
       - no-new-privileges:true
     logging:
@@ -53,7 +55,7 @@ services:
         max-size: "{{DOCKERLOGGING_MAXSIZE}}"
 
   dockhand:
-    image: ghcr.io/dockhand-oss/dockhand:latest
+    image: fnsys/dockhand:latest
     container_name: dockhand
     restart: unless-stopped
     labels:
@@ -75,6 +77,8 @@ services:
       - {{DOCKHAND_STACKS_DIR:-/opt/stacks}}:/opt/stacks
     ports:
       - "{{DOCKHAND_BIND_IP:-0.0.0.0}}:{{DOCKHAND_PORT:-3000}}:3000/tcp"
+    mem_limit: "{{DOCKHAND_MEM_LIMIT:-256m}}"
+    mem_reservation: "{{DOCKHAND_MEM_RESERVATION:-64m}}"
     security_opt:
       - no-new-privileges:true
     logging:

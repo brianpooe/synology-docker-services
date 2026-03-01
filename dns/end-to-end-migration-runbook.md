@@ -18,6 +18,21 @@ Use this as the single flow document. Each step links to the deeper guide where 
 Why temporary IP first:
 - You can build and test everything without disturbing production DNS (`192.168.60.5`).
 
+### Compatibility preflight on Pi 4 (important)
+Run these checks before deployment:
+```bash
+uname -m
+cat /etc/os-release
+docker --version
+docker compose version
+```
+
+Expected:
+- `uname -m` should be `aarch64` (64-bit) for best compatibility with Dockhand.
+- OS can be Raspberry Pi OS Lite based on Debian Trixie.
+- Docker Engine + Compose plugin installed and working.
+- 2GB RAM Pi 4 is fine for this stack with current memory caps.
+
 ## 3) Configure compose environment and render stack
 1. Fill required values in `.env` (or environment file you use):
    - `DNS_BIND_IP=192.168.60.6` (temporary during staging)

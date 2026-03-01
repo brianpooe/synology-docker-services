@@ -3,6 +3,10 @@
 This guide deploys Technitium DNS and Dockhand using:
 - `/Users/luda/Documents/synology-docker-services/docker-compose-files/technitium-dockhand_template.yaml`
 
+Compatibility note:
+- Dockhand image in this stack is `fnsys/dockhand:latest` and should be run on 64-bit Linux (`arm64` on Pi 4).
+- 2GB RAM Pi 4 is supported with the included memory caps in the compose template.
+
 ## 1) Prepare env values
 Update your `.env` with these required values:
 - `DNS_BIND_IP=192.168.60.5`
@@ -10,6 +14,12 @@ Update your `.env` with these required values:
 - `DOCKHAND_ENCRYPTION_KEY=<long-random-string>`
 - `DOCKHAND_STACKS_DIR=<host path containing compose files>`
 - `DOCKER_GID=<docker.sock group id>`
+
+For 2GB Pi 4 (recommended defaults already in `.env.sample`):
+- `TECHNITIUM_MEM_LIMIT=512m`
+- `TECHNITIUM_MEM_RESERVATION=192m`
+- `DOCKHAND_MEM_LIMIT=256m`
+- `DOCKHAND_MEM_RESERVATION=64m`
 
 Tip:
 - `DOCKER_GID` command: `stat -c '%g' /var/run/docker.sock`
