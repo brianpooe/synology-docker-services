@@ -1,0 +1,115 @@
+# pfSense Rule Set: Force DNS on LAN + All VLANs
+
+This runbook enforces DNS redirection to your local resolver (`192.168.60.5`) across:
+- LAN (`192.168.1.0/24`)
+- Office / OPT2 (`192.168.10.0/24`)
+- Family / OPT3 (`192.168.20.0/24`)
+- IoT / OPT4 (`192.168.30.0/24`)
+- Media / OPT5 (`192.168.40.0/24`)
+- Guest / OPT6 (`192.168.50.0/24`)
+
+## Why this is needed
+Right now, redirect NAT is only on LAN. VLAN clients can still bypass your DNS filter by hardcoding public DNS on port 53.
+
+## Prerequisites
+- DNS server IP remains `192.168.60.5` (Pi-hole now, Technitium later).
+- Existing inter-VLAN firewall policy still allows DNS to `192.168.60.5`.
+
+## Step 1: Create pfSense aliases
+Path: `Firewall > Aliases`
+
+Create host alias:
+- Name: `LOCAL_DNS`
+- Type: `Host(s)`
+- Value: `192.168.60.5`
+
+Optional (cleaner descriptions):
+- Name: `DNS_CLIENT_INTERFACES`
+- Type: `Network(s)`
+- Values: `LAN net`, `Office net`, `Family net`, `IoT net`, `Media net`, `Guest net`
+
+## Step 2: Create NAT Port Forward rules (one per interface)
+Path: `Firewall > NAT > Port Forward`
+
+Create 6 rules, one each on: `LAN`, `OPT2`, `OPT3`, `OPT4`, `OPT5`, `OPT6`.
+
+Use these exact fields for each rule:
+- Interface: `<that interface>`
+- Address Family: `IPv4`
+- Protocol: `TCP/UDP`
+- Source: `<that interface> net`
+- Source Port: `any`
+- Destination: `Single host or alias` = `LOCAL_DNS`
+- Invert Match (destination): `checked` (this means destination is NOT `192.168.60.5`)
+- Destination Port Range: `DNS (53)`
+- Redirect target IP: `LOCAL_DNS`
+- Redirect target port: `DNS (53)`
+- Description: `Force DNS to LOCAL_DNS (<interface>)`
+- Filter rule association: `Add associated filter rule`
+
+Important:
+- Keep these 6 NAT rules near the top of the Port Forward list.
+- Do not apply this rule on `OPT7` (Adblock VLAN hosting the DNS server), to avoid self-redirection edge cases.
+
+## Step 3: Clean up conflicting/obsolete firewall rules
+Path: `Firewall > Rules`
+
+For LAN:
+- Disable or remove `Block all rogue DNS requests` (your current rule on LAN).
+
+Reason:
+- With NAT redirection + associated pass rules, that block rule is redundant.
+- If moved above broad allows without careful matching, it can block legitimate redirected DNS.
+
+For OPT3/OPT4/OPT5/OPT6:
+- Keep `Pi-hole` pass rules (or associated pass from NAT) above RFC1918 block rules.
+
+## Step 4: Apply changes
+- Save and `Apply Changes` in NAT and Rules tabs.
+
+## Step 5: Verify enforcement
+From one client in each segment (LAN + OPT2/3/4/5/6), run:
+
+```bash
+nslookup google.com 8.8.8.8
+nslookup cloudflare.com 1.1.1.1
+```
+
+Expected result:
+- Queries still succeed.
+- In your DNS server logs (Pi-hole/Technitium), source appears as the client, proving interception is active.
+
+Also verify internal name resolution:
+
+```bash
+nslookup proxmox.home.brianpooe.com
+nslookup switchlite8poe.home.brianpooe.com
+```
+
+## Optional hardening (recommended)
+Port 53 forcing does not stop encrypted DNS bypass:
+- DoT uses TCP `853`
+- DoH uses HTTPS `443`
+
+Minimum hardening:
+- Add block rules for outbound TCP/UDP `853` on client VLANs.
+
+Advanced hardening:
+- Maintain alias lists of known DoH endpoints and block those on `443`.
+- Or enforce egress via proxy/policy controls if you need strict DNS governance.
+
+## Rule logic diagram
+```mermaid
+flowchart LR
+    A["Client on LAN/OPT2-OPT6"] --> B["Tries DNS to 8.8.8.8:53"]
+    B --> C["pfSense NAT Port Forward\n(destination != 192.168.60.5)"]
+    C --> D["Redirect to 192.168.60.5:53"]
+    D --> E["Pi-hole or Technitium handles query"]
+```
+
+## Fast entry version
+If you want one block per interface for direct UI entry, use:
+- `/Users/luda/Documents/synology-docker-services/dns/pfsense-forced-dns-quick-entry.md`
+
+Related hardening quick-entry:
+- `/Users/luda/Documents/synology-docker-services/dns/pfsense-dot-doh-blocking-quick-entry.md`
