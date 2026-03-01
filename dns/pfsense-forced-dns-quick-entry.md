@@ -13,6 +13,9 @@ Create:
 ## 1) NAT Port Forward rules (enter these 6)
 Path: `Firewall > NAT > Port Forward`
 
+If you already have a correct LAN rule matching `Force DNS to LOCAL_DNS (LAN)`, keep it and skip re-creating Rule A.
+Then create only the missing VLAN rules (`OPT2` to `OPT6`).
+
 For each block below, click `Add` and use exactly these fields.
 
 ### Rule A: LAN

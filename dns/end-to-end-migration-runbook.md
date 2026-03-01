@@ -87,6 +87,9 @@ If these fail, do not proceed to IP swap.
 ## 6) Apply/confirm pfSense DNS enforcement policy
 If not already done, apply forced DNS interception for LAN + VLANs.
 
+If you already have the LAN redirect rule (`LAN`, TCP/UDP, `!LOCAL_DNS`, `53` -> `LOCAL_DNS:53`), keep it and do not duplicate it.
+Only add missing interface rules for `OPT2`, `OPT3`, `OPT4`, `OPT5`, and `OPT6`.
+
 Reference (fast entry):
 - [pfsense-forced-dns-quick-entry.md](./pfsense-forced-dns-quick-entry.md)
 

@@ -33,6 +33,8 @@ Path: `Firewall > NAT > Port Forward`
 
 Create 6 rules, one each on: `LAN`, `OPT2`, `OPT3`, `OPT4`, `OPT5`, `OPT6`.
 
+If LAN rule already exists and matches these fields, keep it and only add the missing VLAN rules (`OPT2` to `OPT6`).
+
 Use these exact fields for each rule:
 - Interface: `<that interface>`
 - Address Family: `IPv4`
