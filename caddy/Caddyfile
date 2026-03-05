@@ -103,6 +103,12 @@ pihole.home.brianpooe.com {
     }
 }
 
+# Technitium DNS web console
+dns01.home.brianpooe.com {
+    import common
+    reverse_proxy 192.168.60.5:5380
+}
+
 # The rest of the apps are running in docker inside synology nas
 nas.home.brianpooe.com {
     import common
