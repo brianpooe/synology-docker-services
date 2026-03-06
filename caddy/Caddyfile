@@ -88,21 +88,6 @@ pbs.home.brianpooe.com {
     encode gzip
 }
 
-# pihole running on a raspberry pi different vlan
-pihole.home.brianpooe.com {
-    import common
-    encode zstd gzip
-
-    rewrite * /admin{uri}
-
-    reverse_proxy 192.168.60.5:80 {
-        header_up Host {host}
-        header_up X-Real-IP {remote_host}
-        header_up Referer {http.request.header.Referer}
-        header_up Origin {http.request.header.Origin}
-    }
-}
-
 # Technitium DNS web console
 dns01.home.brianpooe.com {
     import common
