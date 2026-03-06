@@ -87,6 +87,10 @@ nslookup switchlite8poe.home.brianpooe.com 192.168.60.5
 - If Technitium fails to bind port 53, check for other DNS services on the host (for example `systemd-resolved`, `dnsmasq`, old Pi-hole container).
 - If Dockhand cannot manage containers, verify `DOCKER_GID` and docker socket mount.
 - If Dockhand shows `Invalid ENCRYPTION_KEY`, regenerate with `openssl rand -base64 32`, re-render the compose file, and restart Dockhand.
+- If Caddy ACME DNS-01 fails with `expected 1 zone, got 0 for home.brianpooe.com`, your forced-DNS NAT is likely intercepting Caddy's resolver lookups.
+  - Add `CADDY_HOST` alias and exclude it in the forced DNS NAT rule on Caddy's interface (source `!CADDY_HOST`, source port `any`).
+  - Keep destination invert `!LOCAL_DNS`, destination port `53`, redirect to `LOCAL_DNS:53`.
+  - See: [pfsense-forced-dns-all-vlans.md](./pfsense-forced-dns-all-vlans.md)
 - If `http://<DNS_BIND_IP>:5380` is refused, run:
 ```bash
 docker compose -f docker-compose-files/technitium-dockhand.yaml ps technitium-dns

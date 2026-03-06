@@ -10,6 +10,11 @@ Create:
 - Type: `Host(s)`
 - Value: `192.168.60.5`
 
+Optional (recommended when using Caddy DNS-01 with Cloudflare):
+- Name: `CADDY_HOST`
+- Type: `Host(s)`
+- Value: `192.168.10.5`
+
 ## 1) NAT Port Forward rules (enter these 6)
 Path: `Firewall > NAT > Port Forward`
 
@@ -103,6 +108,31 @@ For each block below, click `Add` and use exactly these fields.
 - Filter rule association: `Add associated filter rule`
 
 Do not add this redirect on `OPT7` (DNS server VLAN).
+
+## 1b) Exception for Caddy ACME DNS-01 traffic (important)
+If Caddy is using DNS-01 challenges with Cloudflare, exclude the Caddy host from forced DNS redirect on the interface where Caddy lives (for this setup, `OFFICE` / `OPT2`).
+
+Edit rule:
+- `Force DNS to LOCAL_DNS (OFFICE)`
+
+Set:
+- Source: `Invert Match` = checked
+- Source type/value: `Address or Alias` = `CADDY_HOST`
+- Source Port: `any` to `any` (do not set `DNS` here)
+- Destination: keep `Invert Match` checked and `LOCAL_DNS`
+- Destination Port: keep `DNS (53)`
+- Redirect target IP/Port: keep `LOCAL_DNS:53`
+
+Why this is needed:
+- Without this exception, pfSense intercepts Caddy's outbound DNS lookups (even when targeting public resolvers like `1.1.1.1`) and redirects them to local Technitium.
+- Caddy then sees local split-DNS zone `home.brianpooe.com`, but Cloudflare only has public zone `brianpooe.com`.
+- ACME fails with: `expected 1 zone, got 0 for home.brianpooe.com`.
+
+Validation from Caddy host:
+```bash
+dig +short SOA home.brianpooe.com @1.1.1.1
+```
+- This should not return Technitium SOA (`dns01.home.brianpooe.com ...`) once the exception is active.
 
 ## 2) Rule order checks (critical)
 

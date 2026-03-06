@@ -96,6 +96,11 @@ Reference (fast entry):
 Reference (full explanation):
 - [pfsense-forced-dns-all-vlans.md](./pfsense-forced-dns-all-vlans.md)
 
+Important for Caddy DNS-01 + Cloudflare:
+- If Caddy host is inside a force-redirected VLAN (for this setup, `OFFICE`), exclude that host from the interface's forced DNS NAT rule.
+- Keep rule source as inverted `!CADDY_HOST` and source port as `any` to `any`.
+- This prevents ACME failures like: `expected 1 zone, got 0 for home.brianpooe.com`.
+
 Optional hardening for encrypted DNS bypass:
 - [pfsense-dot-doh-blocking-quick-entry.md](./pfsense-dot-doh-blocking-quick-entry.md)
 

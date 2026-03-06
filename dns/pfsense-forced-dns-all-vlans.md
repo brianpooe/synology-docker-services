@@ -23,6 +23,11 @@ Create host alias:
 - Type: `Host(s)`
 - Value: `192.168.60.5`
 
+Recommended (if Caddy uses DNS-01 with Cloudflare):
+- Name: `CADDY_HOST`
+- Type: `Host(s)`
+- Value: `192.168.10.5`
+
 Optional (cleaner descriptions):
 - Name: `DNS_CLIENT_INTERFACES`
 - Type: `Network(s)`
@@ -66,6 +71,27 @@ Reason:
 For OPT3/OPT4/OPT5/OPT6:
 - Keep `Pi-hole` pass rules (or associated pass from NAT) above RFC1918 block rules.
 
+## Step 3b: Add DNS redirect exception for Caddy (ACME DNS-01)
+Path: `Firewall > NAT > Port Forward`
+
+If Caddy runs on a VLAN that is also force-redirected for DNS (example: `OFFICE` / `192.168.10.0/24`), edit that interface's forced DNS rule and exclude the Caddy host.
+
+Example rule to edit:
+- `Force DNS to LOCAL_DNS (OFFICE)`
+
+Set:
+- Source: `Invert Match` = checked
+- Source type/value: `Address or Alias` = `CADDY_HOST`
+- Source Port: `any` to `any` (do not set `DNS`)
+- Destination: keep `Invert Match` checked and `LOCAL_DNS`
+- Destination Port: keep `DNS (53)`
+- Redirect target: keep `LOCAL_DNS:53`
+
+Root cause this prevents:
+- Forced DNS NAT can intercept Caddy's resolver lookups to public resolvers.
+- In split-DNS environments, this makes Caddy see local zone `home.brianpooe.com` instead of public authority chain.
+- Cloudflare DNS plugin then fails zone detection with `expected 1 zone, got 0 for home.brianpooe.com`.
+
 ## Step 4: Apply changes
 - Save and `Apply Changes` in NAT and Rules tabs.
 
@@ -87,6 +113,14 @@ Also verify internal name resolution:
 nslookup proxmox.home.brianpooe.com
 nslookup switchlite8poe.home.brianpooe.com
 ```
+
+If using Caddy DNS-01, verify from Caddy host:
+```bash
+dig +short SOA home.brianpooe.com @1.1.1.1
+```
+
+Expected:
+- Result should not be your local Technitium SOA (`dns01.home.brianpooe.com ...`).
 
 ## Optional hardening (recommended)
 Port 53 forcing does not stop encrypted DNS bypass:
