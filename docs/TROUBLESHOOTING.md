@@ -72,7 +72,7 @@ curl -X POST "YOUR_DISCORD_WEBHOOK_URL" \
 In this template, only download clients are expected behind VPN tunnel.
 
 - Behind VPN: `gluetun`, `qbittorrent`
-- Not behind VPN by default: `radarr`, `sonarr`, `prowlarr`, `bazarr`, `emby`, `jellyseerr`
+- Not behind VPN by default: `radarr`, `sonarr`, `prowlarr`, `bazarr`, `emby`, `seerr`
 
 Checks:
 

@@ -27,16 +27,10 @@ From Pi-hole backup:
 - 26 CNAMEs currently pointing to `caddy.home.brianpooe.com`
 
 From your Caddyfile host blocks:
-- 28 hostnames are defined in file.
-- You marked these as no longer in use (excluded from active migration scope):
-  - `jellyseerr.home.brianpooe.com`
-  - `ollama.home.brianpooe.com`
-  - `paperless-ai.home.brianpooe.com`
-- Active hostnames in scope: 25.
+- 24 hostnames are defined in file.
 - 1 active hostname exists in Caddy but is missing from Pi-hole CNAME list:
   - `switchlite8poe.home.brianpooe.com`
-- 2 hostnames are in Pi-hole CNAME list but not currently in Caddy:
-  - `seafile.home.brianpooe.com`
+- 1 hostname is in Pi-hole CNAME list but not currently in Caddy:
   - `tplink8pe.home.brianpooe.com`
 
 A wildcard record closes this drift gap permanently.
@@ -100,10 +94,8 @@ If you prefer explicit control, create:
   - `beszel.home.brianpooe.com`
   - `immich.home.brianpooe.com`
   - `speedtest.home.brianpooe.com`
-  - `seafile.home.brianpooe.com`
   - `gramps.home.brianpooe.com`
   - `ytd.home.brianpooe.com`
-  - `dav.home.brianpooe.com`
   - `seerr.home.brianpooe.com`
 
 If using explicit-only, also add active Caddy hosts that currently have no Pi-hole entry:

@@ -14,5 +14,4 @@ sudo docker exec -it sonarr curl ipconfig.io
 sudo docker exec -it bazarr curl ipconfig.io
 sudo docker exec -it flaresolverr curl ipconfig.io
 sudo docker exec -it emby curl ipconfig.io
-sudo docker exec -it jellyseerr curl ipconfig.io
-
+sudo docker exec -it seerr curl ipconfig.io

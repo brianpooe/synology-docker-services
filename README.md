@@ -41,7 +41,7 @@ Complete automated media management with VPN protection and socket-proxy securit
 - **Sonarr** - TV series collection manager
 - **Bazarr** - Subtitle manager
 - **Emby** - Media server
-- **Jellyseerr** - Request management
+- **Seerr** - Request management
 - **FlareSolverr** - Captcha solver
 - **Recyclarr** - Quality profile sync (TRaSH Guides)
 - **Diun** - Docker image update notifications (via socket-proxy)
@@ -188,7 +188,7 @@ Create required directories:
 
 ```bash
 # Config directories
-sudo mkdir -p /volume1/docker/appdata/{gluetun,qbittorrent,sabnzbd,prowlarr,radarr,sonarr,bazarr,emby,jellyseerr,recyclarr,postgres,pgadmin,vault}
+sudo mkdir -p /volume1/docker/appdata/{gluetun,qbittorrent,sabnzbd,prowlarr,radarr,sonarr,bazarr,emby,seerr,recyclarr,postgres,pgadmin,vault}
 
 # Storage directories
 sudo mkdir -p /volume1/data/{torrents,usenet,media}/{movies,tv,music}

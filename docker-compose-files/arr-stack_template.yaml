@@ -461,8 +461,7 @@ services:
       LOG_LEVEL: info
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      # Keep existing jellyseerr config path to allow Seerr auto-migration on first startup.
-      - {{DOCKERCONFDIR}}/jellyseerr:/app/config
+      - {{DOCKERCONFDIR}}/seerr:/app/config
       - {{DOCKERSTORAGEDIR}}/media:/data/media
     depends_on:
       emby:

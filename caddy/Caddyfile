@@ -100,15 +100,6 @@ nas.home.brianpooe.com {
     reverse_proxy 192.168.10.24:5000
 }
 
-dav.home.brianpooe.com {
-    import common
-    reverse_proxy 192.168.10.24:5006 {
-        transport http {
-            tls_insecure_skip_verify
-        }
-    }
-}
-
 emby.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.24:8096
@@ -149,12 +140,6 @@ seerr.home.brianpooe.com {
     reverse_proxy 192.168.10.24:5055
 }
 
-# Legacy hostname redirect for old bookmarks
-jellyseerr.home.brianpooe.com {
-    import common
-    redir https://seerr.home.brianpooe.com{uri} permanent
-}
-
 flaresolverr.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.24:8191
@@ -174,16 +159,6 @@ paperless-ngx.home.brianpooe.com {
 
     encode gzip
 }
-paperless-ai.home.brianpooe.com {
-    import common
-    reverse_proxy 192.168.10.12:3000
-}
-
-ollama.home.brianpooe.com {
-    import common
-    reverse_proxy 192.168.10.9:11434
-}
-
 it-tools.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.7:80
@@ -218,9 +193,4 @@ speedtest.home.brianpooe.com {
 gramps.home.brianpooe.com {
     import common
     reverse_proxy 192.168.10.18:80
-}
-
-seafile.home.brianpooe.com {
-    import common
-    reverse_proxy 192.168.10.17:8005
 }
