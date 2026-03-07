@@ -56,7 +56,7 @@ services:
       - "com.synology.stack=media"
       - "com.synology.service=hawser-agent"
     networks:
-      - socket-proxy
+      - hawser-network
     ports:
       - "{{HAWSER_BIND_IP:-0.0.0.0}}:{{HAWSER_PORT:-2376}}:2376"
     environment:
@@ -494,7 +494,7 @@ services:
       LOG_LEVEL: info
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/seerr:/app/config
+      - {{DOCKERCONFDIR}}/jellyseerr:/app/config
       - {{DOCKERSTORAGEDIR}}/media:/data/media
     depends_on:
       emby:
@@ -607,3 +607,9 @@ networks:
     internal: true
     labels:
       - "com.synology.network=docker-proxy"
+
+  hawser-network:
+    driver: bridge
+    name: hawser_network
+    labels:
+      - "com.synology.network=hawser"
