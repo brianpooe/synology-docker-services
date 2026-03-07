@@ -170,7 +170,7 @@ beszel.home.brianpooe.com {
 
 gramps.home.brianpooe.com {
     import common
-    reverse_proxy 192.168.10.18:80
+    reverse_proxy 192.168.10.17:5000
 }
 
 immich.home.brianpooe.com {
