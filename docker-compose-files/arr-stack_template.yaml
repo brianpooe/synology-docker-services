@@ -134,7 +134,9 @@ services:
   qbittorrent:
     image: ghcr.io/hotio/qbittorrent:latest
     container_name: qbittorrent
-    network_mode: "service:gluetun"
+    # Use direct container network mode for better compatibility with single-service recreate flows
+    # (for example Dockhand updates on Synology).
+    network_mode: "container:gluetun"
     restart: unless-stopped
     labels:
       - "com.synology.stack=media"

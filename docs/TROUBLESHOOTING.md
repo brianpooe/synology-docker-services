@@ -122,6 +122,35 @@ docker network prune
 docker-compose -f docker-compose.arr-stack.yml up -d
 ```
 
+### 6b. qBittorrent stuck in "Created" / `network service:gluetun not found`
+
+Symptoms:
+
+- `qbittorrent` does not start after updates and remains in `Created`
+- Recreate shows: `Error response from daemon: network service:gluetun not found`
+
+Cause:
+
+- `network_mode: service:gluetun` can fail during single-service recreate/update flows on some Synology setups.
+
+Fix:
+
+```bash
+# Ensure template uses container mode for qbittorrent:
+# network_mode: "container:gluetun"
+
+# Re-render compose and recreate the pair
+./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml .env
+docker-compose -f docker-compose.arr-stack.yml up -d --force-recreate gluetun qbittorrent
+```
+
+Verify:
+
+```bash
+docker-compose -f docker-compose.arr-stack.yml ps gluetun qbittorrent
+docker-compose -f docker-compose.arr-stack.yml logs --tail 100 qbittorrent
+```
+
 ### 7. Data/config persistence problems
 
 Checks:
