@@ -9,7 +9,6 @@ docker ps -a
 docker stats --no-stream
 docker network ls
 docker-compose -f docker-compose.arr-stack.yml config
-docker logs diun --tail 200
 ```
 
 ## Common issues
@@ -49,25 +48,7 @@ Generate your file from this repo template:
 ./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
 ```
 
-### 3. Diun not sending notifications
-
-Checks:
-
-```bash
-docker logs diun
-docker logs socket-proxy
-docker ps --filter "label=diun.enable=true"
-```
-
-Validate webhook manually:
-
-```bash
-curl -X POST "YOUR_DISCORD_WEBHOOK_URL" \
-  -H "Content-Type: application/json" \
-  -d '{"content":"Diun webhook test"}'
-```
-
-### 4. qBittorrent/SAB not using VPN IP
+### 3. qBittorrent/SAB not using VPN IP
 
 In this template, only download clients are expected behind VPN tunnel.
 
@@ -81,7 +62,7 @@ docker logs gluetun | grep -i connected
 docker exec qbittorrent curl -s ifconfig.me
 ```
 
-### 5. Dependency/healthcheck startup failures
+### 4. Dependency/healthcheck startup failures
 
 Symptoms:
 
@@ -102,7 +83,7 @@ Fixes:
 - Test healthcheck command inside the container.
 - Validate generated compose YAML syntax with `docker-compose ... config`.
 
-### 6. Network communication failures
+### 5. Network communication failures
 
 Checks:
 
@@ -122,7 +103,7 @@ docker network prune
 docker-compose -f docker-compose.arr-stack.yml up -d
 ```
 
-### 6b. qBittorrent stuck in "Created" / `network service:gluetun not found`
+### 5b. qBittorrent stuck in "Created" / `network service:gluetun not found`
 
 Symptoms:
 
@@ -151,7 +132,7 @@ docker-compose -f docker-compose.arr-stack.yml ps gluetun qbittorrent
 docker-compose -f docker-compose.arr-stack.yml logs --tail 100 qbittorrent
 ```
 
-### 7. Data/config persistence problems
+### 6. Data/config persistence problems
 
 Checks:
 
@@ -173,7 +154,7 @@ For pgAdmin specifically:
 chown -R 5050:5050 /volume1/docker/appdata/pgadmin
 ```
 
-### 8. Caddy reverse proxy issues
+### 7. Caddy reverse proxy issues
 
 If Caddy refuses to start, validate syntax first:
 
@@ -200,7 +181,6 @@ transport http {
 ```bash
 docker-compose -f docker-compose.arr-stack.yml pull
 docker-compose -f docker-compose.arr-stack.yml up -d
-docker logs -f diun
 ```
 
 ---

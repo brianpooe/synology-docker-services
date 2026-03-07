@@ -10,7 +10,6 @@ services:
     container_name: vault
     restart: unless-stopped
     labels:
-      - "diun.enable=true"
       - "com.synology.stack=security"
       - "com.synology.service=secrets-manager"
     ports:

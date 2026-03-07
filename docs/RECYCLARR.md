@@ -314,7 +314,7 @@ docker exec recyclarr recyclarr sync sonarr web-1080p-v4
 
 ### Update Recyclarr
 
-Recyclarr updates are reported by Diun. Apply image updates manually after review.
+Apply Recyclarr image updates manually after review.
 
 Manual update:
 ```bash

@@ -29,10 +29,9 @@ docker-compose -f docker-compose.vault.yml up -d
 ## 📦 Available Stacks
 
 ### 🎬 Media Stack (`arr-stack_template.yaml`)
-Complete automated media management with VPN protection and socket-proxy security.
+Complete automated media management with VPN protection and security hardening.
 
 **Services:**
-- **Socket-Proxy** - Secure Docker API gateway ✅ *NEW*
 - **Hawser Agent** - Remote host connector for Dockhand
 - **Gluetun** - VPN container (WireGuard/OpenVPN)
 - **qBittorrent** - Torrent client (through VPN)
@@ -45,11 +44,9 @@ Complete automated media management with VPN protection and socket-proxy securit
 - **Seerr** - Request management
 - **FlareSolverr** - Captcha solver
 - **Recyclarr** - Quality profile sync (TRaSH Guides)
-- **Diun** - Docker image update notifications (via socket-proxy)
 
 **Features:**
 - ✅ VPN kill-switch for download clients
-- ✅ Socket-proxy for secure Docker API access
 - ✅ Health checks and dependency management
 - ✅ Resource limits to prevent system exhaustion
 - ✅ Security hardening (no-new-privileges, internal networks)
@@ -75,7 +72,7 @@ HashiCorp Vault for secrets management.
 
 **Features:**
 - ✅ Production-ready configuration
-- ✅ Diun monitors but does not auto-update (safer)
+- ✅ Pinned Vault version for predictable upgrades
 - ✅ IPC_LOCK capability for security
 - ✅ Health monitoring
 
@@ -83,26 +80,12 @@ HashiCorp Vault for secrets management.
 
 ## 🔒 Security Features
 
-### Socket-Proxy Integration
-Diun uses socket-proxy for restricted Docker API access:
-
-| Feature | Traditional | With Socket-Proxy |
-|---------|------------|-------------------|
-| Docker Socket Access | Full R/W | Restricted API endpoints |
-| Exec in Containers | ✅ Possible | ❌ Blocked |
-| Access Secrets | ✅ Possible | ❌ Blocked |
-| Manage Volumes | ✅ Possible | ❌ Blocked |
-| Attack Surface | 100% | ~10% |
-
-**See:** [docs/SOCKET_PROXY.md](docs/SOCKET_PROXY.md) for details
-
 ### Additional Security
 - **No-new-privileges** on all containers
 - **Read-only filesystems** where applicable
 - **Internal networks** for service isolation
 - **Resource limits** to prevent DoS
 - **Health checks** for reliability
-- **Diun monitoring** with label-based filtering
 
 ---
 
@@ -138,10 +121,6 @@ TZ=Africa/Johannesburg
 # Docker Logging
 DOCKERLOGGING_MAXFILE=3
 DOCKERLOGGING_MAXSIZE=10m
-
-# Diun - Image Update Monitoring
-DIUN_WATCH_SCHEDULE=0 0 4 * * *
-DIUN_DISCORD_WEBHOOK_URL=
 
 # VPN Configuration
 VPN_SERVICE_PROVIDER=airvpn
@@ -242,13 +221,13 @@ docker-compose -f docker-compose.arr-stack.yml up -d
 
 # Verify deployment
 docker ps
-docker logs -f diun
+docker logs -f gluetun
 ```
 
 ### Option 3: Deploy Individual Services
 ```bash
 # Start only specific services
-docker-compose -f docker-compose.arr-stack.yml up -d socket-proxy gluetun qbittorrent prowlarr radarr sonarr
+docker-compose -f docker-compose.arr-stack.yml up -d gluetun qbittorrent prowlarr radarr sonarr
 ```
 
 ---
@@ -261,21 +240,10 @@ docker-compose -f docker-compose.arr-stack.yml up -d socket-proxy gluetun qbitto
 docker ps
 
 # Check specific service logs
-docker logs socket-proxy
-docker logs diun
 docker logs gluetun
 
 # Check health status
-docker inspect socket-proxy | grep -A 10 Health
-```
-
-### Test Socket-Proxy Security
-```bash
-# Should work - Diun can list containers
-docker exec diun wget -qO- http://socket-proxy:2375/containers/json
-
-# Should fail with 403 - exec is blocked
-docker exec diun wget -qO- http://socket-proxy:2375/containers/diun/exec
+docker inspect gluetun | grep -A 10 Health
 ```
 
 ### Test VPN Connection
@@ -306,9 +274,6 @@ Total resources if all services running:
 
 ### Update Containers
 ```bash
-# Monitored (via Diun)
-# Diun checks for updates on schedule defined in DIUN_WATCH_SCHEDULE
-
 # Manual update
 docker-compose -f docker-compose.arr-stack.yml pull
 docker-compose -f docker-compose.arr-stack.yml up -d
@@ -352,8 +317,6 @@ docker-compose -f docker-compose.arr-stack.yml stop
 ## 📚 Documentation
 
 ### Detailed Guides
-- **[Socket-Proxy Security](docs/SOCKET_PROXY.md)** - Docker API security implementation
-- **[Diun Configuration](docs/DIUN.md)** - Update monitoring and Discord notifications
 - **[Recyclarr Setup](docs/RECYCLARR.md)** - Quality profile configuration
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Improvements Guide](docs/IMPROVEMENTS.md)** - What changed and why
@@ -391,31 +354,6 @@ docker-compose -f docker-compose.arr-stack.yml config
 base_url: http://sonarr:8989  # ✅ Correct
 base_url: http://localhost:8989  # ❌ Wrong
 ```
-
-#### Diun: Not receiving notifications
-**Fix:** Check socket-proxy is running and Diun can connect:
-```bash
-docker logs socket-proxy
-docker logs diun
-```
-
-#### Diun: Discord webhook not working
-**Symptoms:** No notifications in Discord channel
-
-**Fix:** Use the Discord webhook URL directly (no conversion needed!):
-```bash
-# In .env file:
-DIUN_DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/1234567890/your_token_here
-```
-
-**Verify webhook works:**
-```bash
-curl -X POST "YOUR_WEBHOOK_URL" \
-  -H "Content-Type: application/json" \
-  -d '{"content":"Test notification from Diun setup"}'
-```
-
-**See full guide:** [docs/DIUN.md](docs/DIUN.md)
 
 #### qBittorrent: No connection
 **Fix:** Check Gluetun VPN is connected:
@@ -459,9 +397,6 @@ If upgrading from previous configurations:
 ## 🎯 Best Practices
 
 ### Security
-- ✅ Use socket-proxy for Diun (enabled by default)
-- ✅ Use label-based monitoring (`diun.enable=true`) to control what's monitored
-- ✅ Diun only monitors - never auto-updates (safer than auto-update tools)
 - ✅ Use strong passwords in `.env`
 - ✅ Never commit `.env` to git
 - ✅ Regularly update containers

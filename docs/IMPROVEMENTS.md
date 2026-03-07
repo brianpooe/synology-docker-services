@@ -8,13 +8,6 @@ This document tracks the practical hardening and maintainability improvements in
 
 ### 1. Security defaults
 
-- Added `socket-proxy` for Docker API mediation instead of direct socket access from tooling containers.
-- Kept Docker socket mount read-only in the proxy service.
-- Tightened proxy permissions for the current Diun workflow:
-  - `CONTAINERS=1`
-  - `IMAGES=1`
-  - `POST=0`
-  - dangerous endpoints disabled (`EXEC`, `SECRETS`, etc.)
 - Added `security_opt: no-new-privileges:true` broadly across services.
 
 ### 2. Reliability
@@ -33,7 +26,6 @@ This document tracks the practical hardening and maintainability improvements in
 - Standardized logging options with `.env` variables:
   - `DOCKERLOGGING_MAXFILE`
   - `DOCKERLOGGING_MAXSIZE`
-- Diun included for update notifications (monitor-only, no auto-update behavior).
 
 ### 5. Template consistency
 
@@ -69,7 +61,6 @@ docker-compose -f docker-compose.vault.yml up -d
 
 ## Notes
 
-- `docs/SOCKET_PROXY.md` contains current proxy-specific validation and troubleshooting.
 - `docs/TROUBLESHOOTING.md` is the primary operational runbook.
 
 ---

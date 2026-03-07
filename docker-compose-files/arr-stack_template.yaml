@@ -5,49 +5,6 @@ version: '3.8'
 # Memory limits are supported and configured below
 
 services:
-  socket-proxy:
-    image: lscr.io/linuxserver/socket-proxy:latest
-    container_name: socket-proxy
-    restart: unless-stopped
-    labels:
-      - "com.synology.stack=media"
-      - "com.synology.service=docker-proxy"
-    networks:
-      - socket-proxy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      PUID: {{PUID}}
-      PGID: {{PGID}}
-      TZ: {{TZ}}
-      CONTAINERS: 1
-      POST: 0
-      IMAGES: 1
-      NETWORKS: 0
-      SERVICES: 0
-      TASKS: 0
-      EXEC: 0
-      SECRETS: 0
-    healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:2375/version || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 32M
-    security_opt:
-      - no-new-privileges:true
-    logging:
-      driver: json-file
-      options:
-        max-file: "{{DOCKERLOGGING_MAXFILE}}"
-        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
-
   hawser:
     image: ghcr.io/finsys/hawser:latest
     container_name: hawser
@@ -89,7 +46,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=vpn"
-      - "diun.enable=true"
     cap_add:
       - NET_ADMIN
     devices:
@@ -141,7 +97,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=torrent-client"
-      - "diun.enable=true"
     environment:
       PUID: {{PUID}}
       PGID: {{PGID}}
@@ -176,7 +131,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=captcha-solver"
-      - "diun.enable=true"
     networks:
       - vpn-network
     ports:
@@ -216,7 +170,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=usenet-client"
-      - "diun.enable=true"
     networks:
       - vpn-network
     ports:
@@ -258,7 +211,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=indexer-manager"
-      - "diun.enable=true"
     networks:
       - vpn-network
     ports:
@@ -301,7 +253,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=movie-pvr"
-      - "diun.enable=true"
     networks:
       - vpn-network
     ports:
@@ -347,7 +298,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=tv-pvr"
-      - "diun.enable=true"
     networks:
       - vpn-network
     ports:
@@ -393,7 +343,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=subtitle-manager"
-      - "diun.enable=true"
     networks:
       - vpn-network
     ports:
@@ -439,7 +388,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=media-server"
-      - "diun.enable=true"
     networks:
       - vpn-network
     ports:
@@ -485,7 +433,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=media-requests"
-      - "diun.enable=true"
     networks:
       - vpn-network
     ports:
@@ -528,7 +475,6 @@ services:
     labels:
       - "com.synology.stack=media"
       - "com.synology.service=arr-config-manager"
-      - "diun.enable=true"
     networks:
       - vpn-network
     user: "{{PUID}}:{{PGID}}"
@@ -556,59 +502,12 @@ services:
         max-file: "{{DOCKERLOGGING_MAXFILE}}"
         max-size: "{{DOCKERLOGGING_MAXSIZE}}"
 
-  diun:
-    image: crazymax/diun:latest
-    container_name: diun
-    restart: unless-stopped
-    labels:
-      - "com.synology.stack=media"
-      - "com.synology.service=update-notifier"
-    networks:
-      - socket-proxy
-    environment:
-      TZ: {{TZ}}
-      LOG_LEVEL: info
-      LOG_JSON: "false"
-      # Docker provider configuration
-      DIUN_PROVIDERS_DOCKER: "true"
-      DIUN_PROVIDERS_DOCKER_ENDPOINT: tcp://socket-proxy:2375
-      DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT: "false"
-      # Watch schedule (cron format)
-      DIUN_WATCH_SCHEDULE: "{{DIUN_WATCH_SCHEDULE}}"
-      # Discord notifications
-      DIUN_NOTIF_DISCORD_WEBHOOKURL: "{{DIUN_DISCORD_WEBHOOK_URL}}"
-      DIUN_NOTIF_DISCORD_RENDERFIELDS: "true"
-      DIUN_NOTIF_DISCORD_TIMEOUT: 10s
-    depends_on:
-      socket-proxy:
-        condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 32M
-    security_opt:
-      - no-new-privileges:true
-    logging:
-      driver: json-file
-      options:
-        max-file: "{{DOCKERLOGGING_MAXFILE}}"
-        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
-
 networks:
   vpn-network:
     driver: bridge
     name: vpn_network
     labels:
       - "com.synology.network=media"
-
-  socket-proxy:
-    driver: bridge
-    name: socket_proxy_network
-    internal: true
-    labels:
-      - "com.synology.network=docker-proxy"
 
   hawser-network:
     driver: bridge
