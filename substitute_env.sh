@@ -31,11 +31,6 @@ if [[ "$SOURCE_FILE" == "$OUTPUT_FILE" ]]; then
     exit 1
 fi
 
-if ! command -v perl >/dev/null 2>&1; then
-    echo "Error: perl is required but was not found."
-    exit 1
-fi
-
 # 2. Load .env safely
 if [[ -f "$ENV_FILE" ]]; then
     while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
@@ -81,14 +76,42 @@ else
 fi
 
 # 3. Process the template (handles {{VAR}} and {{VAR:-default}})
+render_template() {
+    local source="$1"
+    local target="$2"
+    local line full key default replacement has_default
+
+    : >"$target"
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        while [[ "$line" =~ \{\{([A-Za-z_][A-Za-z0-9_]*)(:-([^}]*))?\}\} ]]; do
+            full="${BASH_REMATCH[0]}"
+            key="${BASH_REMATCH[1]}"
+            has_default="${BASH_REMATCH[2]-}"
+            default="${BASH_REMATCH[3]-}"
+
+            if [[ "${!key+x}" == "x" ]]; then
+                replacement="${!key}"
+            elif [[ -n "$has_default" ]]; then
+                replacement="$default"
+            else
+                replacement="$full"
+            fi
+
+            line="${line/$full/$replacement}"
+        done
+        printf '%s\n' "$line" >>"$target"
+    done <"$source"
+}
+
 TMP_OUTPUT="$(mktemp)"
 trap 'rm -f "$TMP_OUTPUT"' EXIT
-perl -pe 's/\{\{(\w+)(?::-(.*?))?\}\}/exists $ENV{$1} ? $ENV{$1} : (defined $2 ? $2 : $&)/ge' "$SOURCE_FILE" >"$TMP_OUTPUT"
+render_template "$SOURCE_FILE" "$TMP_OUTPUT"
 mv "$TMP_OUTPUT" "$OUTPUT_FILE"
 trap - EXIT
 
 # 4. Final validation: check for unreplaced placeholders
-MISSING_VARS="$(perl -lne 'print for /\{\{\w+.*?\}\}/g' "$OUTPUT_FILE" | sort -u || true)"
+MISSING_VARS="$(grep -oE '\{\{[A-Za-z_][A-Za-z0-9_]*(:-[^}]*)?\}\}' "$OUTPUT_FILE" | sort -u || true)"
 
 if [[ -n "$MISSING_VARS" ]]; then
     echo "--------------------------------------------------------"
