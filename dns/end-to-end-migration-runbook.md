@@ -11,12 +11,12 @@ Use this as the single flow document. Each step links to the deeper guide where 
    - [pfsense-pihole-technitium-analysis.md](./pfsense-pihole-technitium-analysis.md)
 
 ## 2) Prepare the new Pi 4 with a temporary DNS IP
-1. Connect Pi 4 to the same Adblock VLAN (`192.168.60.0/24`).
-2. In pfSense, create a temporary DHCP static mapping for Pi 4, for example `192.168.60.6`.
+1. Connect Pi 4 to the same Adblock VLAN (`10.60.0.0/24`).
+2. In pfSense, create a temporary DHCP static mapping for Pi 4, for example `10.60.0.6`.
 3. Confirm Pi 4 gets the temporary IP and has network reachability.
 
 Why temporary IP first:
-- You can build and test everything without disturbing production DNS (`192.168.60.5`).
+- You can build and test everything without disturbing production DNS (`10.60.0.5`).
 
 ### Compatibility preflight on Pi 4 (important)
 Run these checks before deployment:
@@ -35,7 +35,7 @@ Expected:
 
 ## 3) Configure compose environment and render stack
 1. Fill required values in `.env` (or environment file you use):
-   - `DNS_BIND_IP=192.168.60.6` (temporary during staging)
+   - `DNS_BIND_IP=10.60.0.6` (temporary during staging)
    - `TECHNITIUM_ADMIN_PASSWORD=<strong-password>`
    - `DOCKHAND_ENCRYPTION_KEY=<base64 key from openssl rand -base64 32>`
    - `TECHNITIUM_CONFIG_DIR=./appdata/technitium`
@@ -57,15 +57,15 @@ Reference:
 
 ## 4) Configure Technitium to mirror current behavior
 1. Open Technitium UI on Pi 4 temporary IP:
-   - `http://192.168.60.6:5380`
-2. Create primary zone `home.brianpooe.com`.
+   - `http://10.60.0.6:5380`
+2. Create primary zone `home.example.com`.
 3. Add:
    - `A` record inside that zone:
-     - Name: `caddy` (FQDN: `caddy.home.brianpooe.com`)
-     - Address: `192.168.10.5`
+     - Name: `caddy` (FQDN: `caddy.home.example.com`)
+     - Address: `10.10.0.5`
    - wildcard `CNAME` inside that zone:
-     - Name: `*` (FQDN: `*.home.brianpooe.com`)
-     - Target: `caddy.home.brianpooe.com`
+     - Name: `*` (FQDN: `*.home.example.com`)
+     - Target: `caddy.home.example.com`
 4. Configure blocklist:
    - `https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts`
 5. Add allowlist entry:
@@ -75,11 +75,11 @@ Reference:
 - [technitium-cutover-checklist.md](./technitium-cutover-checklist.md)
 
 ## 5) Pre-cutover validation on temporary IP
-From clients (or directly from Pi 4), validate against `192.168.60.6`:
+From clients (or directly from Pi 4), validate against `10.60.0.6`:
 ```bash
-nslookup google.com 192.168.60.6
-nslookup proxmox.home.brianpooe.com 192.168.60.6
-nslookup switchlite8poe.home.brianpooe.com 192.168.60.6
+nslookup google.com 10.60.0.6
+nslookup proxmox.home.example.com 10.60.0.6
+nslookup switchlite8poe.home.example.com 10.60.0.6
 ```
 
 If these fail, do not proceed to IP swap.
@@ -99,22 +99,22 @@ Reference (full explanation):
 Important for Caddy DNS-01 + Cloudflare:
 - If Caddy host is inside a force-redirected VLAN (for this setup, `OFFICE`), exclude that host from the interface's forced DNS NAT rule.
 - Keep rule source as inverted `!CADDY_HOST` and source port as `any` to `any`.
-- This prevents ACME failures like: `expected 1 zone, got 0 for home.brianpooe.com`.
+- This prevents ACME failures like: `expected 1 zone, got 0 for home.example.com`.
 
 Optional hardening for encrypted DNS bypass:
 - [pfsense-dot-doh-blocking-quick-entry.md](./pfsense-dot-doh-blocking-quick-entry.md)
 
-## 7) Safe same-IP handover (make Pi 4 become `192.168.60.5`)
+## 7) Safe same-IP handover (make Pi 4 become `10.60.0.5`)
 1. Schedule a short maintenance window.
 2. Stop/disconnect old Pi Zero 2 W first (avoid duplicate IP and ARP conflict).
 3. In pfSense DHCP static mappings (Adblock VLAN):
-   - Move `192.168.60.5` reservation from old Pi MAC to new Pi 4 MAC.
+   - Move `10.60.0.5` reservation from old Pi MAC to new Pi 4 MAC.
 4. On Pi 4:
    - Renew DHCP lease or reboot networking/container host.
-5. Confirm Pi 4 now has `192.168.60.5`.
-6. If needed, clear stale ARP entry for `192.168.60.5` on pfSense.
+5. Confirm Pi 4 now has `10.60.0.5`.
+6. If needed, clear stale ARP entry for `10.60.0.5` on pfSense.
 7. Update `.env`:
-   - set `DNS_BIND_IP=192.168.60.5`
+   - set `DNS_BIND_IP=10.60.0.5`
 8. Re-render and restart stack:
 ```bash
 ./substitute_env.sh docker-compose-files/technitium-dockhand_template.yaml docker-compose-files/technitium-dockhand.yaml .env
@@ -124,10 +124,10 @@ docker compose -f docker-compose-files/technitium-dockhand.yaml up -d
 ## 8) Post-cutover validation (production IP)
 Run tests from each VLAN segment:
 ```bash
-nslookup google.com 192.168.60.5
+nslookup google.com 10.60.0.5
 nslookup cloudflare.com 1.1.1.1
-nslookup proxmox.home.brianpooe.com 192.168.60.5
-nslookup switchlite8poe.home.brianpooe.com 192.168.60.5
+nslookup proxmox.home.example.com 10.60.0.5
+nslookup switchlite8poe.home.example.com 10.60.0.5
 ```
 
 Expected:
@@ -138,7 +138,7 @@ Expected:
 
 ## 9) Rollback (if needed)
 1. Stop Technitium stack on Pi 4.
-2. In pfSense, move `192.168.60.5` DHCP reservation back to old Pi Zero 2 W MAC.
+2. In pfSense, move `10.60.0.5` DHCP reservation back to old Pi Zero 2 W MAC.
 3. Start old Pi Zero 2 W.
 4. Validate DNS from clients.
 

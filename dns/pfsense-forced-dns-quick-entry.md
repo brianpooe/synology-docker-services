@@ -8,12 +8,12 @@ Path: `Firewall > Aliases`
 Create:
 - Name: `LOCAL_DNS`
 - Type: `Host(s)`
-- Value: `192.168.60.5`
+- Value: `10.60.0.5`
 
 Optional (recommended when using Caddy DNS-01 with Cloudflare):
 - Name: `CADDY_HOST`
 - Type: `Host(s)`
-- Value: `192.168.10.5`
+- Value: `10.10.0.5`
 
 ## 1) NAT Port Forward rules (enter these 6)
 Path: `Firewall > NAT > Port Forward`
@@ -125,14 +125,14 @@ Set:
 
 Why this is needed:
 - Without this exception, pfSense intercepts Caddy's outbound DNS lookups (even when targeting public resolvers like `1.1.1.1`) and redirects them to local Technitium.
-- Caddy then sees local split-DNS zone `home.brianpooe.com`, but Cloudflare only has public zone `brianpooe.com`.
-- ACME fails with: `expected 1 zone, got 0 for home.brianpooe.com`.
+- Caddy then sees local split-DNS zone `home.example.com`, but Cloudflare only has public zone `example.com`.
+- ACME fails with: `expected 1 zone, got 0 for home.example.com`.
 
 Validation from Caddy host:
 ```bash
-dig +short SOA home.brianpooe.com @1.1.1.1
+dig +short SOA home.example.com @1.1.1.1
 ```
-- This should not return Technitium SOA (`dns01.home.brianpooe.com ...`) once the exception is active.
+- This should not return Technitium SOA (`dns01.home.example.com ...`) once the exception is active.
 
 ## 2) Rule order checks (critical)
 
@@ -154,8 +154,8 @@ Test from one client per segment:
 ```bash
 nslookup google.com 8.8.8.8
 nslookup cloudflare.com 1.1.1.1
-nslookup proxmox.home.brianpooe.com
-nslookup switchlite8poe.home.brianpooe.com
+nslookup proxmox.home.example.com
+nslookup switchlite8poe.home.example.com
 ```
 
 Expected:

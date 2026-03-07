@@ -7,31 +7,31 @@ Start-here master flow:
 No, not if all your app hostnames should resolve to Caddy.
 
 You can replace most manual CNAMEs with:
-- `A` record: `caddy.home.brianpooe.com -> 192.168.10.5`
-- wildcard `CNAME`: `*.home.brianpooe.com -> caddy.home.brianpooe.com`
+- `A` record: `caddy.home.example.com -> 10.10.0.5`
+- wildcard `CNAME`: `*.home.example.com -> caddy.home.example.com`
 
 This removes the need to add a new DNS record every time you add a new proxied service.
 
 Technitium UI tip:
-- When editing records inside zone `home.brianpooe.com`, use relative names (`caddy`, `*`) rather than full FQDN labels.
+- When editing records inside zone `home.example.com`, use relative names (`caddy`, `*`) rather than full FQDN labels.
 
 ## Wildcard caveats (important)
-- Wildcard does not cover the zone apex itself (`home.brianpooe.com`).
+- Wildcard does not cover the zone apex itself (`home.example.com`).
 - Explicit records still override wildcard (this is good; you can keep special cases).
 - A typo hostname will still resolve to Caddy; Caddy may return 404/cert mismatch until that host is configured there.
 - Keep your reverse-proxy security policy in Caddy (host matching/auth), because DNS wildcard is broad by design.
 
 ## What your current data says
 From Pi-hole backup:
-- `caddy.home.brianpooe.com -> 192.168.10.5`
-- 26 CNAMEs currently pointing to `caddy.home.brianpooe.com`
+- `caddy.home.example.com -> 10.10.0.5`
+- 26 CNAMEs currently pointing to `caddy.home.example.com`
 
 From your Caddyfile host blocks:
 - 24 hostnames are defined in file.
 - 1 active hostname exists in Caddy but is missing from Pi-hole CNAME list:
-  - `switchlite8poe.home.brianpooe.com`
+  - `switchlite8poe.home.example.com`
 - 1 hostname is in Pi-hole CNAME list but not currently in Caddy:
-  - `tplink8pe.home.brianpooe.com`
+  - `tplink8pe.home.example.com`
 
 A wildcard record closes this drift gap permanently.
 
@@ -42,64 +42,64 @@ A wildcard record closes this drift gap permanently.
 - Deployment guide: [technitium-dockhand-deployment.md](./technitium-dockhand-deployment.md)
 
 ### 1. Keep network references stable
-- Keep Technitium service IP as `192.168.60.5`.
+- Keep Technitium service IP as `10.60.0.5`.
 - This avoids changing pfSense DHCP DNS settings, firewall allow rules, and LAN DNS redirect NAT target.
 
 ### 2. Deploy Technitium on Raspberry Pi
-- Run Technitium container on the Adblock VLAN network reachable as `192.168.60.5`.
+- Run Technitium container on the Adblock VLAN network reachable as `10.60.0.5`.
 - Ensure TCP/UDP `53` reaches this container from all intended VLANs.
 
 ### 3. Create primary zone
-- Zone name: `home.brianpooe.com`
+- Zone name: `home.example.com`
 - Zone type: Primary
 
 ### 4. Add DNS records (choose one model)
 
 #### Model A: wildcard-first (recommended)
 Create only these core records first:
-- `A` record inside zone `home.brianpooe.com`:
-  - Name: `caddy` (FQDN `caddy.home.brianpooe.com`)
-  - Address: `192.168.10.5`
-- `CNAME` record inside zone `home.brianpooe.com`:
-  - Name: `*` (FQDN `*.home.brianpooe.com`)
-  - Target: `caddy.home.brianpooe.com`
+- `A` record inside zone `home.example.com`:
+  - Name: `caddy` (FQDN `caddy.home.example.com`)
+  - Address: `10.10.0.5`
+- `CNAME` record inside zone `home.example.com`:
+  - Name: `*` (FQDN `*.home.example.com`)
+  - Target: `caddy.home.example.com`
 
 Optional explicit records for readability (not required if wildcard exists):
-- `CNAME` `pihole.home.brianpooe.com` -> `caddy.home.brianpooe.com`
-- `CNAME` `proxmox.home.brianpooe.com` -> `caddy.home.brianpooe.com`
+- `CNAME` `pihole.home.example.com` -> `caddy.home.example.com`
+- `CNAME` `proxmox.home.example.com` -> `caddy.home.example.com`
 - etc.
 
 #### Model B: explicit-only (current behavior equivalent)
 If you prefer explicit control, create:
-- `A` `caddy.home.brianpooe.com` -> `192.168.10.5`
+- `A` `caddy.home.example.com` -> `10.10.0.5`
 - CNAME records for each service:
-  - `pihole.home.brianpooe.com`
-  - `proxmox.home.brianpooe.com`
-  - `nas.home.brianpooe.com`
-  - `bazarr.home.brianpooe.com`
-  - `emby.home.brianpooe.com`
-  - `flaresolverr.home.brianpooe.com`
-  - `gluetun.home.brianpooe.com`
-  - `prowlarr.home.brianpooe.com`
-  - `qbittorrent.home.brianpooe.com`
-  - `radarr.home.brianpooe.com`
-  - `sabnzbd.home.brianpooe.com`
-  - `sonarr.home.brianpooe.com`
-  - `tplink8pe.home.brianpooe.com`
-  - `tplink16de.home.brianpooe.com`
-  - `pbs.home.brianpooe.com`
-  - `paperless-ngx.home.brianpooe.com`
-  - `it-tools.home.brianpooe.com`
-  - `bento-pdf.home.brianpooe.com`
-  - `beszel.home.brianpooe.com`
-  - `immich.home.brianpooe.com`
-  - `speedtest.home.brianpooe.com`
-  - `gramps.home.brianpooe.com`
-  - `ytd.home.brianpooe.com`
-  - `seerr.home.brianpooe.com`
+  - `pihole.home.example.com`
+  - `proxmox.home.example.com`
+  - `nas.home.example.com`
+  - `bazarr.home.example.com`
+  - `emby.home.example.com`
+  - `flaresolverr.home.example.com`
+  - `gluetun.home.example.com`
+  - `prowlarr.home.example.com`
+  - `qbittorrent.home.example.com`
+  - `radarr.home.example.com`
+  - `sabnzbd.home.example.com`
+  - `sonarr.home.example.com`
+  - `tplink8pe.home.example.com`
+  - `tplink16de.home.example.com`
+  - `pbs.home.example.com`
+  - `paperless-ngx.home.example.com`
+  - `it-tools.home.example.com`
+  - `bento-pdf.home.example.com`
+  - `beszel.home.example.com`
+  - `immich.home.example.com`
+  - `speedtest.home.example.com`
+  - `gramps.home.example.com`
+  - `ytd.home.example.com`
+  - `seerr.home.example.com`
 
 If using explicit-only, also add active Caddy hosts that currently have no Pi-hole entry:
-- `switchlite8poe.home.brianpooe.com`
+- `switchlite8poe.home.example.com`
 
 ### 5. Recreate filtering behavior
 - Add blocklist URL:
@@ -109,27 +109,27 @@ If using explicit-only, also add active Caddy hosts that currently have no Pi-ho
 
 ### 6. Choose upstream strategy in Technitium
 Pick one:
-- Least-change: forward to pfSense (`192.168.1.1`) first.
+- Least-change: forward to pfSense (`10.1.0.1`) first.
 - Cleaner path: enable direct recursive resolution in Technitium.
 
 ### 7. Validate before full cutover
 From a client in each VLAN, test:
-- `nslookup proxmox.home.brianpooe.com 192.168.60.5`
-- `nslookup switchlite8poe.home.brianpooe.com 192.168.60.5`
-- `nslookup google.com 192.168.60.5`
-- `nslookup www.googleadservices.com 192.168.60.5` (should be allowed)
+- `nslookup proxmox.home.example.com 10.60.0.5`
+- `nslookup switchlite8poe.home.example.com 10.60.0.5`
+- `nslookup google.com 10.60.0.5`
+- `nslookup www.googleadservices.com 10.60.0.5` (should be allowed)
 
 Also test one blocked ad/tracker domain from query logs.
 
 ### 8. Cutover
-- Stop Pi-hole service on `192.168.60.5`.
-- Start Technitium on `192.168.60.5`.
+- Stop Pi-hole service on `10.60.0.5`.
+- Start Technitium on `10.60.0.5`.
 - Confirm DNS responses and Caddy app access from each VLAN.
 
 ### 9. Rollback plan
 If anything fails:
 - Stop Technitium.
-- Start Pi-hole back on `192.168.60.5`.
+- Start Pi-hole back on `10.60.0.5`.
 - Existing pfSense integration should recover immediately since IP dependencies are unchanged.
 
 ## Decision recommendation for your setup
@@ -142,9 +142,9 @@ Reason:
 ## DNS + proxy interaction (with wildcard)
 ```mermaid
 flowchart LR
-    A["Client queries any host\n*.home.brianpooe.com"] --> B["Technitium wildcard CNAME"]
-    B --> C["caddy.home.brianpooe.com"]
-    C --> D["A record 192.168.10.5"]
+    A["Client queries any host\n*.home.example.com"] --> B["Technitium wildcard CNAME"]
+    B --> C["caddy.home.example.com"]
+    C --> D["A record 10.10.0.5"]
     D --> E["Caddy routes by Host header\nto matching app"]
 ```
 
