@@ -33,6 +33,7 @@ Complete automated media management with VPN protection and socket-proxy securit
 
 **Services:**
 - **Socket-Proxy** - Secure Docker API gateway ✅ *NEW*
+- **Hawser Agent** - Remote host connector for Dockhand
 - **Gluetun** - VPN container (WireGuard/OpenVPN)
 - **qBittorrent** - Torrent client (through VPN)
 - **SABnzbd** - Usenet client (through VPN)
@@ -150,6 +151,13 @@ WIREGUARD_ADDRESSES=10.x.x.x/32
 FIREWALL_VPN_INPUT_PORTS=12345
 SERVER_COUNTRIES=Netherlands
 
+# Hawser Agent (for Dockhand remote host management)
+HAWSER_BIND_IP=0.0.0.0
+HAWSER_PORT=2376
+HAWSER_TOKEN=strong_shared_token
+HAWSER_AGENT_NAME=synology-host
+HAWSER_LOG_LEVEL=info
+
 # Database
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=strong_password
@@ -163,6 +171,15 @@ PGADMIN_PASSWORD=strong_password
 ssh admin@synology-nas
 id $USER
 ```
+
+**Hawser token details (Dockhand remote host):**
+- `HAWSER_TOKEN` is a shared secret used by Dockhand to authenticate to the Hawser agent.
+- Generate a token:
+```bash
+openssl rand -base64 32
+```
+- Set that value in `.env` as `HAWSER_TOKEN=...`.
+- Use the exact same token in Dockhand when adding the Synology host endpoint.
 
 ### 2. Recyclarr Configuration
 
