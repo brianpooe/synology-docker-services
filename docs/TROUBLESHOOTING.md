@@ -159,6 +159,7 @@ chown -R 5050:5050 /volume1/docker/appdata/pgadmin
 If Caddy refuses to start, validate syntax first:
 
 ```bash
+./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 caddy validate --config caddy/Caddyfile
 ```
 

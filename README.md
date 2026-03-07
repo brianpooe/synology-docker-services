@@ -17,6 +17,7 @@ nano .env  # Fill in your configuration
 ./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
 ./substitute_env.sh docker-compose-files/postgres_template.yaml docker-compose.postgres.yml
 ./substitute_env.sh docker-compose-files/vault_template.yaml docker-compose.vault.yml
+./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 
 # 4. Deploy
 docker-compose -f docker-compose.arr-stack.yml up -d
@@ -137,6 +138,13 @@ HAWSER_TOKEN=strong_shared_token
 HAWSER_AGENT_NAME=synology-host
 HAWSER_LOG_LEVEL=info
 
+# Caddy reverse proxy template
+CADDY_TLS_EMAIL=admin@example.com
+CADDY_BASE_DOMAIN=home.example.com
+CADDY_DNS_PREFIX=10.60.0
+CADDY_INFRA_PREFIX=10.10.0
+CADDY_LAN_PREFIX=10.1.0
+
 # Database
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=strong_password
@@ -207,6 +215,7 @@ sudo chown -R 5050:5050 /volume1/docker/appdata/pgadmin
 ./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
 ./substitute_env.sh docker-compose-files/postgres_template.yaml docker-compose.postgres.yml
 ./substitute_env.sh docker-compose-files/vault_template.yaml docker-compose.vault.yml
+./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 
 docker-compose -f docker-compose.arr-stack.yml up -d
 docker-compose -f docker-compose.postgres.yml up -d

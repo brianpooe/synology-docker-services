@@ -220,6 +220,7 @@ fabric.properties
 !.idea/codeStyles
 .idea/runConfigurations
 .env
+caddy/Caddyfile
 
 docker-compose-files/**/*
 !docker-compose-files/**/

@@ -4,7 +4,7 @@
 
 #### Shared Snippets
 (common) {
-    tls admin@example.com {
+    tls {{CADDY_TLS_EMAIL:-admin@example.com}} {
         dns cloudflare {env.CLOUDFLARE_DNS_TOKEN}
         resolvers 1.1.1.1 1.0.0.1
     }
@@ -26,7 +26,7 @@
 (content-security-general) { # Default setup
     # Disable unsafe inline/eval and plugins, only load scripts and stylesheets from same origin, fonts from google,
     #   and images from same origin and imgur. Sites should aim for policies like this.
-    Content-Security-Policy "frame-ancestors 'self' https://*.home.example.com"
+    Content-Security-Policy "frame-ancestors 'self' https://*.{{CADDY_BASE_DOMAIN:-home.example.com}}"
     #"default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self'; form-action 'self'; connect-src 'self'; frame-ancestors 'none';"
     #default-src 'none'; font-src https://fonts.gstatic.com; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self'; style-src 'self'
 }
@@ -41,25 +41,25 @@
 }
 
 #### Infrastructure
-dns01.home.example.com {
+dns01.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.60.0.5:5380
+    reverse_proxy {{CADDY_DNS_PREFIX:-10.60.0}}.5:5380
 }
 
-dockhand.home.example.com {
+dockhand.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.60.0.5:3000
+    reverse_proxy {{CADDY_DNS_PREFIX:-10.60.0}}.5:3000
 }
 
-nas.home.example.com {
+nas.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:5000
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:5000
 }
 
 # Proxmox Backup Server
-pbs.home.example.com {
+pbs.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.8:8007 {
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.8:8007 {
         transport http {
             tls_insecure_skip_verify
         }
@@ -77,9 +77,9 @@ pbs.home.example.com {
 }
 
 # Proxmox
-proxmox.home.example.com {
+proxmox.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.10:8006 {
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.10:8006 {
         transport http {
             tls_insecure_skip_verify
         }
@@ -96,109 +96,109 @@ proxmox.home.example.com {
     encode gzip
 }
 
-switchlite8poe.home.example.com {
+switchlite8poe.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.1.0.5
+    reverse_proxy {{CADDY_LAN_PREFIX:-10.1.0}}.5
 }
 
-tplink16de.home.example.com {
+tplink16de.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.1.0.8
+    reverse_proxy {{CADDY_LAN_PREFIX:-10.1.0}}.8
 }
 
 #### Synology Media Stack
-bazarr.home.example.com {
+bazarr.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:6767
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:6767
 }
 
-emby.home.example.com {
+emby.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:8096
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:8096
 }
 
-flaresolverr.home.example.com {
+flaresolverr.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:8191
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:8191
 }
 
-gluetun.home.example.com {
+gluetun.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:8000
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:8000
 }
 
-prowlarr.home.example.com {
+prowlarr.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:9696
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:9696
 }
 
-qbittorrent.home.example.com {
+qbittorrent.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:8080
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:8080
 }
 
-radarr.home.example.com {
+radarr.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:7878
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:7878
 }
 
-sabnzbd.home.example.com {
+sabnzbd.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:8282
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:8282
 }
 
-seerr.home.example.com {
+seerr.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:5055
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:5055
 }
 
-sonarr.home.example.com {
+sonarr.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.24:8989
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.24:8989
 }
 
 #### Proxmox Apps
-bento-pdf.home.example.com {
+bento-pdf.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.6:8080
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.6:8080
 }
 
-beszel.home.example.com {
+beszel.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.13:8090
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.13:8090
 }
 
-gramps.home.example.com {
+gramps.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.17:5000
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.17:5000
 }
 
-immich.home.example.com {
+immich.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.15:2283
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.15:2283
 }
 
-it-tools.home.example.com {
+it-tools.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.7:80
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.7:80
 }
 
-paperless-ngx.home.example.com {
+paperless-ngx.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.11:8000 {
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.11:8000 {
         header_up Host {host}
     }
 
     encode gzip
 }
 
-speedtest.home.example.com {
+speedtest.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy 10.10.0.16:80
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.16:80
 }
 
-ytd.home.example.com {
+ytd.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
     uri strip_prefix metube
-    reverse_proxy 10.10.0.14:3033
+    reverse_proxy {{CADDY_INFRA_PREFIX:-10.10.0}}.14:3033
 }
