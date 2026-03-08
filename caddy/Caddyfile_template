@@ -40,6 +40,25 @@
     Content-Security-Policy default-src 'none'; frame-ancestors 'none'
 }
 
+# Shared block for office admin apps with self-signed upstream TLS.
+(office-admin-upstream) {
+    transport http {
+        tls_insecure_skip_verify
+    }
+    header_up Host {upstream_hostport}
+}
+
+# Shared security headers for office admin apps.
+(office-admin-security) {
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "no-referrer"
+    }
+    encode gzip
+}
+
 #### Infrastructure
 ## 1) LAN services
 switchlite8poe.{{CADDY_BASE_DOMAIN:-home.example.com}} {
@@ -73,40 +92,18 @@ nas.{{CADDY_BASE_DOMAIN:-home.example.com}} {
 pbs.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
     reverse_proxy {{CADDY_OFFICE_PREFIX:-10.10.0}}.8:8007 {
-        transport http {
-            tls_insecure_skip_verify
-        }
-        header_up Host {upstream_hostport}
+        import office-admin-upstream
     }
-
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "no-referrer"
-    }
-
-    encode gzip
+    import office-admin-security
 }
 
 # Proxmox
 proxmox.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
     reverse_proxy {{CADDY_OFFICE_PREFIX:-10.10.0}}.10:8006 {
-        transport http {
-            tls_insecure_skip_verify
-        }
-        header_up Host {upstream_hostport}
+        import office-admin-upstream
     }
-
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "no-referrer"
-    }
-
-    encode gzip
+    import office-admin-security
 }
 
 #### Synology Media Stack
