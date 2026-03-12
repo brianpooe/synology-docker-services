@@ -48,6 +48,30 @@ Generate your file from this repo template:
 ./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
 ```
 
+### 2b. Recyclarr errors (`Unable to find include template ...`)
+
+Symptoms:
+
+- `Unable to find include template with name 'radarr-quality-definition-movie'`
+- Similar errors for other `include: - template:` entries
+
+Cause:
+
+- You are using an older pre-v8 `recyclarr.yml` that still has `include: - template:` entries.
+- Recyclarr v8 removed official include templates from the default provider.
+
+Fix (v8 path used by this repository):
+
+```bash
+# 1) Regenerate recyclarr config from the v8 template
+./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
+
+# 2) Regenerate compose and recreate recyclarr (v8.4.0 pin)
+./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
+docker-compose -f docker-compose.arr-stack.yml pull recyclarr
+docker-compose -f docker-compose.arr-stack.yml up -d recyclarr
+```
+
 ### 3. qBittorrent/SAB not using VPN IP
 
 In this template, only download clients are expected behind VPN tunnel.

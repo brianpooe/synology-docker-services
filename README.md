@@ -185,6 +185,7 @@ nano /volume1/docker/appdata/recyclarr/recyclarr.yml
 - **Radarr:** Settings → General → Security → API Key
 
 **Important:** Use service names (`http://sonarr:8989`), NOT `localhost`!
+This repository's template uses Recyclarr v8 guide-backed profiles and is pinned to `ghcr.io/recyclarr/recyclarr:v8.4.0`.
 
 ### 3. Directory Structure
 
@@ -363,6 +364,10 @@ docker-compose -f docker-compose.arr-stack.yml config
 base_url: http://sonarr:8989  # ✅ Correct
 base_url: http://localhost:8989  # ❌ Wrong
 ```
+
+#### Recyclarr: "Unable to find include template with name ..."
+**Cause:** Old pre-v8 `recyclarr.yml` still using `include: - template:`.
+**Fix:** Regenerate from `docker-compose-files/recyclarr_template.yml` and recreate Recyclarr. See [docs/RECYCLARR.md](docs/RECYCLARR.md).
 
 #### qBittorrent: No connection
 **Fix:** Check Gluetun VPN is connected:

@@ -469,7 +469,7 @@ services:
         max-size: "{{DOCKERLOGGING_MAXSIZE}}"
 
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:latest
+    image: ghcr.io/recyclarr/recyclarr:v8.4.0
     container_name: recyclarr
     restart: unless-stopped
     labels:

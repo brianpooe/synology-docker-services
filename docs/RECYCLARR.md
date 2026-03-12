@@ -1,412 +1,166 @@
-# Recyclarr Configuration Guide
+# Recyclarr Configuration Guide (v8)
 
-Recyclarr automatically synchronizes TRaSH Guides quality profiles and custom formats to your Sonarr and Radarr instances.
+Recyclarr syncs TRaSH Guides quality profiles and custom formats to Sonarr and Radarr.
+This repository now uses Recyclarr **v8** with guide-backed quality profiles (no include templates).
 
 ## Quick Start
 
-### 1. Copy Configuration Template
+### 1. Generate `recyclarr.yml`
 
 ```bash
-# Copy the template to your recyclarr config directory
 ./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
-
-# Edit with your API keys
 nano /volume1/docker/appdata/recyclarr/recyclarr.yml
 ```
 
-### 2. Get API Keys
+### 2. Add API Keys
 
-**Sonarr:**
-1. Open Sonarr web interface: `http://your-nas-ip:8989`
-2. Go to: Settings → General → Security
-3. Copy the **API Key**
+- Sonarr: Settings -> General -> Security -> API Key
+- Radarr: Settings -> General -> Security -> API Key
 
-**Radarr:**
-1. Open Radarr web interface: `http://your-nas-ip:7878`
-2. Go to: Settings → General → Security
-3. Copy the **API Key**
+### 3. Keep Docker Service URLs
 
-### 3. Configure Base URLs
-
-**CRITICAL:** Use Docker service names, NOT `localhost`!
+Use service names, not localhost:
 
 ```yaml
-# ✅ Correct - Uses service name
 sonarr:
-  web-1080p-v4:
+  sonarr-main:
     base_url: http://sonarr:8989
-    api_key: your_sonarr_api_key_here
 
 radarr:
-  uhd-bluray-web:
+  radarr-main:
     base_url: http://radarr:7878
-    api_key: your_radarr_api_key_here
 ```
 
+## Template Behavior (v8)
+
+The included template configures:
+
+- Sonarr quality definition: `series`
+- Sonarr guide-backed profiles:
+  - `WEB-1080p` (`72dae194fc92bf828f32cde7744e51a1`)
+  - `WEB-2160p` (`d1498e7d189fbe6c7110ceaabb7473e6`)
+- Radarr quality definition: `movie`
+- Radarr guide-backed profiles:
+  - `UHD Bluray + WEB` (`64fb5f9858489bdac2af690e27c8f42f`)
+  - `HD Bluray + WEB` (`d1d67249d3890e49bc12e275d989a7e9`)
+- Language CF override for non-English audio (`0dc8aec3bd1c47cd6c40c46ecd27e846`) with `-10000` score
+
+## Example v8 Configuration
+
+This is the same shape used by `docker-compose-files/recyclarr_template.yml`:
+
 ```yaml
-# ❌ Wrong - localhost doesn't work in Docker
 sonarr:
-  web-1080p-v4:
-    base_url: http://localhost:8989  # Won't work!
-```
-
-**Why?** Inside the recyclarr container, `localhost` refers to itself, not the host or other containers.
-
----
-
-## Configuration Example
-
-### Complete Working Configuration
-
-```yaml
-sonarr:
-  web-1080p-v4:
+  sonarr-main:
     base_url: http://sonarr:8989
-    api_key: abc123def456...  # Your actual API key
+    api_key: your_sonarr_api_key
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
-    include:
-      - template: sonarr-quality-definition-series
-      - template: sonarr-v4-quality-profile-web-1080p
-      - template: sonarr-v4-custom-formats-web-1080p
-
-  web-2160p-v4:
-    base_url: http://sonarr:8989
-    api_key: abc123def456...  # Same API key
-    delete_old_custom_formats: true
-    replace_existing_custom_formats: true
-    include:
-      - template: sonarr-quality-definition-series
-      - template: sonarr-v4-quality-profile-web-2160p
-      - template: sonarr-v4-custom-formats-web-2160p
+    quality_definition:
+      type: series
+    quality_profiles:
+      - trash_id: 72dae194fc92bf828f32cde7744e51a1
+        name: WEB-1080p
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: d1498e7d189fbe6c7110ceaabb7473e6
+        name: WEB-2160p
+        reset_unmatched_scores:
+          enabled: true
+    custom_formats:
+      - trash_ids:
+          - 0dc8aec3bd1c47cd6c40c46ecd27e846
+        assign_scores_to:
+          - name: WEB-1080p
+            score: -10000
+          - name: WEB-2160p
+            score: -10000
 
 radarr:
-  uhd-bluray-web:
+  radarr-main:
     base_url: http://radarr:7878
-    api_key: xyz789ghi012...  # Your actual API key
+    api_key: your_radarr_api_key
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
-    include:
-      - template: radarr-quality-definition-movie
-      - template: radarr-quality-profile-uhd-bluray-web
-      - template: radarr-custom-formats-uhd-bluray-web
-
-  hd-bluray-web:
-    base_url: http://radarr:7878
-    api_key: xyz789ghi012...  # Same API key
-    delete_old_custom_formats: true
-    replace_existing_custom_formats: true
-    include:
-      - template: radarr-quality-definition-movie
-      - template: radarr-quality-profile-hd-bluray-web
-      - template: radarr-custom-formats-hd-bluray-web
+    quality_definition:
+      type: movie
+    quality_profiles:
+      - trash_id: 64fb5f9858489bdac2af690e27c8f42f
+        name: UHD Bluray + WEB
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: d1d67249d3890e49bc12e275d989a7e9
+        name: HD Bluray + WEB
+        reset_unmatched_scores:
+          enabled: true
+    custom_formats:
+      - trash_ids:
+          - 0dc8aec3bd1c47cd6c40c46ecd27e846
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+            score: -10000
+          - name: HD Bluray + WEB
+            score: -10000
 ```
 
----
-
-## Testing Configuration
-
-### 1. Validate Config File
+## Validate and Sync
 
 ```bash
-# List configured instances
+# Confirm instance names from config
 docker exec recyclarr recyclarr config list
-```
 
-**Expected output:**
-```
-Sonarr Instances:
-  - web-1080p-v4
-  - web-2160p-v4
-
-Radarr Instances:
-  - uhd-bluray-web
-  - hd-bluray-web
-```
-
-### 2. Preview Sync (Dry Run)
-
-```bash
-# Preview changes without applying
+# Dry run first
 docker exec recyclarr recyclarr sync --preview
-```
 
-This shows what would change without actually modifying anything.
-
-### 3. Actually Sync
-
-```bash
-# Apply changes to Sonarr and Radarr
+# Apply
 docker exec recyclarr recyclarr sync
 ```
-
-### 4. Check Logs
-
-```bash
-# View recyclarr logs
-docker logs recyclarr
-
-# Follow logs in real-time
-docker logs -f recyclarr
-```
-
----
-
-## Automatic Sync Schedule
-
-Recyclarr runs on a cron schedule defined in the container. By default, it syncs daily.
-
-To modify the schedule, you would need to customize the container configuration (advanced).
-
-For manual syncs:
-```bash
-docker exec recyclarr recyclarr sync
-```
-
----
 
 ## Common Issues
 
-### Issue: "base_url must start with 'http' or 'https'"
+### `base_url must start with 'http' or 'https'`
 
-**Cause:** The `base_url` is empty or malformed.
+Cause: malformed URL or empty value.
 
-**Fix:**
+Fix:
+
 ```yaml
 # Wrong
 base_url: localhost:8989
-base_url:  # Empty
+base_url:
 
 # Correct
 base_url: http://sonarr:8989
 ```
 
-### Issue: "Connection refused" or "Cannot connect"
+### `Unable to find include template with name ...`
 
-**Possible causes:**
-1. Service names are wrong
-2. Containers not on same network
-3. Sonarr/Radarr not running
+Cause: old pre-v8 config using `include: - template:`.
 
-**Fix:**
-```bash
-# Check containers are running
-docker ps | grep -E "sonarr|radarr|recyclarr"
-
-# Check network connectivity
-docker exec recyclarr ping sonarr
-docker exec recyclarr ping radarr
-
-# Check Sonarr is responding
-docker exec recyclarr wget -qO- http://sonarr:8989/ping
-```
-
-### Issue: "Unauthorized" or "Invalid API key"
-
-**Cause:** Wrong API key or permissions issue.
-
-**Fix:**
-1. Get correct API key from Sonarr/Radarr (Settings → General → Security)
-2. Copy-paste carefully (no extra spaces)
-3. Ensure API key has full permissions
-
-### Issue: Config file not found
-
-**Cause:** File not in correct location.
-
-**Fix:**
-```bash
-# Check file exists
-docker exec recyclarr ls -la /config
-
-# Expected location inside container
-/config/recyclarr.yml
-```
-
-On host, this maps to:
-```
-{{DOCKERCONFDIR}}/recyclarr/recyclarr.yml
-```
-
----
-
-## Quality Profiles
-
-### What Recyclarr Syncs
-
-**For Sonarr:**
-- Quality definitions (file size limits)
-- Quality profiles (which qualities to allow)
-- Custom formats (preferences for releases)
-- Custom format scores (prioritization)
-
-**For Radarr:**
-- Quality definitions
-- Quality profiles
-- Custom formats
-- Custom format scores
-
-### Available TRaSH Templates
-
-**Sonarr:**
-- `sonarr-quality-definition-series` - File size limits
-- `sonarr-v4-quality-profile-web-1080p` - 1080p WEB profile
-- `sonarr-v4-quality-profile-web-2160p` - 4K WEB profile
-- `sonarr-v4-custom-formats-web-1080p` - 1080p custom formats
-- `sonarr-v4-custom-formats-web-2160p` - 4K custom formats
-
-**Radarr:**
-- `radarr-quality-definition-movie` - File size limits
-- `radarr-quality-profile-hd-bluray-web` - HD Bluray/WEB
-- `radarr-quality-profile-uhd-bluray-web` - 4K Bluray/WEB
-- `radarr-custom-formats-hd-bluray-web` - HD custom formats
-- `radarr-custom-formats-uhd-bluray-web` - 4K custom formats
-
----
-
-## Custom Formats
-
-### Common Custom Formats
-
-Recyclarr applies TRaSH Guide custom formats to improve release selection:
-
-**Quality Improvements:**
-- Prefer proper/repack releases
-- Avoid bad dual audio groups
-- Prefer streaming optimized releases
-
-**HDR/Audio:**
-- DV (Dolby Vision) handling
-- HDR10+ support
-- Audio codec preferences
-
-**Release Groups:**
-- Prefer scene/p2p groups
-- Avoid obfuscated releases
-- Filter low-quality encodes
-
-### Customizing Scores
-
-In your config, you can adjust scores:
-
-```yaml
-custom_formats:
-  - trash_ids:
-      - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
-    assign_scores_to:
-      - name: UHD Bluray + WEB
-        score: 100  # Higher score = higher priority
-```
-
----
-
-## Maintenance
-
-### Manual Sync
+Fix:
 
 ```bash
-# Sync all instances
-docker exec recyclarr recyclarr sync
+# Regenerate v8 config from current template
+./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
 
-# Sync specific instance
-docker exec recyclarr recyclarr sync sonarr web-1080p-v4
-```
-
-### Update Recyclarr
-
-Apply Recyclarr image updates manually after review.
-
-Manual update:
-```bash
+# Recreate recyclarr with v8 image from compose template
+./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
 docker-compose -f docker-compose.arr-stack.yml pull recyclarr
 docker-compose -f docker-compose.arr-stack.yml up -d recyclarr
 ```
 
-### View Current Settings
+### `replace_existing_custom_formats` validation error
 
-Check what's currently configured in Sonarr/Radarr:
-- Settings → Profiles → Quality Profiles
-- Settings → Profiles → Custom Formats
+Cause: this key was removed in v8.
 
----
+Fix: remove `replace_existing_custom_formats` from your config.
 
-## Best Practices
+## Upgrade Notes
 
-1. **Start with Templates**
-   - Use TRaSH templates as baseline
-   - Customize only if needed
+- This repository pins Recyclarr to `ghcr.io/recyclarr/recyclarr:v8.4.0`.
+- Always run `sync --preview` before `sync` after changing quality/profile settings.
 
-2. **Test with Preview**
-   - Always preview before syncing
-   - Review changes carefully
+## References
 
-3. **Backup Before Syncing**
-   - Backup Sonarr/Radarr databases
-   - Easy rollback if needed
-
-4. **Monitor First Sync**
-   - Watch logs during initial sync
-   - Verify profiles in UI after sync
-
-5. **Keep It Simple**
-   - Don't over-customize initially
-   - TRaSH defaults work well for most
-
----
-
-## Advanced Configuration
-
-### Multiple Instances
-
-You can configure multiple Sonarr/Radarr instances:
-
-```yaml
-sonarr:
-  instance-1:
-    base_url: http://sonarr:8989
-    api_key: key1
-
-  instance-2:
-    base_url: http://sonarr-4k:8989
-    api_key: key2
-```
-
-### Instance-Specific Templates
-
-Different quality settings per instance:
-
-```yaml
-sonarr:
-  web-1080p:
-    include:
-      - template: sonarr-v4-quality-profile-web-1080p
-
-  web-2160p:
-    include:
-      - template: sonarr-v4-quality-profile-web-2160p
-```
-
----
-
-## Resources
-
-- **TRaSH Guides:** https://trash-guides.info/
-- **Recyclarr Wiki:** https://recyclarr.dev/
-- **Recyclarr GitHub:** https://github.com/recyclarr/recyclarr
-- **TRaSH Discord:** https://trash-guides.info/discord
-
----
-
-## Troubleshooting Checklist
-
-- [ ] Config file exists at correct location
-- [ ] Base URLs use service names (not localhost)
-- [ ] API keys are correct and complete
-- [ ] Sonarr/Radarr are running and healthy
-- [ ] Containers are on same Docker network
-- [ ] No typos in configuration
-- [ ] YAML syntax is valid (proper indentation)
-
----
-
-**Last Updated:** 2026-02-14
+- Recyclarr v8 upgrade guide: https://recyclarr.dev/guide/upgrade-guide/v8.0/
+- Quality profiles reference: https://recyclarr.dev/reference/configuration/quality-profiles/
+- Custom formats reference: https://recyclarr.dev/reference/configuration/custom-formats/
+- Quality definition reference: https://recyclarr.dev/reference/configuration/quality-definition/
