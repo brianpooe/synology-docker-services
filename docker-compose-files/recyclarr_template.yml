@@ -22,7 +22,7 @@ sonarr:
       # Language: Not English (TRaSH). Reverse scoring to block non-English audio.
       # Source: https://trash-guides.info/Radarr/Tips/How-to-setup-language-custom-formats/
       - trash_ids:
-          - 0dc8aec3bd1c47cd6c40c46ecd27e846
+          - 69aa1e159f97d860440b04cd6d590c4f
         assign_scores_to:
           - name: WEB-1080p
             score: -10000

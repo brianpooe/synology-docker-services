@@ -43,7 +43,9 @@ The included template configures:
 - Radarr guide-backed profiles:
   - `UHD Bluray + WEB` (`64fb5f9858489bdac2af690e27c8f42f`)
   - `HD Bluray + WEB` (`d1d67249d3890e49bc12e275d989a7e9`)
-- Language CF override for non-English audio (`0dc8aec3bd1c47cd6c40c46ecd27e846`) with `-10000` score
+- Language CF override for non-English audio with `-10000` score:
+  - Sonarr: `69aa1e159f97d860440b04cd6d590c4f`
+  - Radarr: `0dc8aec3bd1c47cd6c40c46ecd27e846`
 
 ## Example v8 Configuration
 
@@ -68,7 +70,7 @@ sonarr:
           enabled: true
     custom_formats:
       - trash_ids:
-          - 0dc8aec3bd1c47cd6c40c46ecd27e846
+          - 69aa1e159f97d860440b04cd6d590c4f
         assign_scores_to:
           - name: WEB-1080p
             score: -10000
