@@ -185,7 +185,7 @@ nano /volume1/docker/appdata/recyclarr/recyclarr.yml
 - **Radarr:** Settings → General → Security → API Key
 
 **Important:** Use service names (`http://sonarr:8989`), NOT `localhost`!
-This repository's template uses Recyclarr v8 guide-backed profiles and is pinned to `ghcr.io/recyclarr/recyclarr:v8.4.0`.
+This repository's template uses Recyclarr v8 guide-backed profiles and is pinned to `ghcr.io/recyclarr/recyclarr:8.4.0`.
 
 ### 3. Directory Structure
 

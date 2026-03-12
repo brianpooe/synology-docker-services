@@ -155,7 +155,7 @@ Fix: remove `replace_existing_custom_formats` from your config.
 
 ## Upgrade Notes
 
-- This repository pins Recyclarr to `ghcr.io/recyclarr/recyclarr:v8.4.0`.
+- This repository pins Recyclarr to `ghcr.io/recyclarr/recyclarr:8.4.0`.
 - Always run `sync --preview` before `sync` after changing quality/profile settings.
 
 ## References
