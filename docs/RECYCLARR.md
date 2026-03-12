@@ -46,6 +46,8 @@ The included template configures:
 - Language CF override for non-English audio with `-10000` score:
   - Sonarr: `69aa1e159f97d860440b04cd6d590c4f`
   - Radarr: `0dc8aec3bd1c47cd6c40c46ecd27e846`
+- Sonarr DSCP is explicitly managed at score `75`:
+  - Sonarr: `dc5f2bb0e0262155b5fedd0f6c5d2b55`
 
 ## Example v8 Configuration
 
@@ -76,6 +78,13 @@ sonarr:
             score: -10000
           - name: WEB-2160p
             score: -10000
+      - trash_ids:
+          - dc5f2bb0e0262155b5fedd0f6c5d2b55
+        assign_scores_to:
+          - name: WEB-1080p
+            score: 75
+          - name: WEB-2160p
+            score: 75
 
 radarr:
   radarr-main:

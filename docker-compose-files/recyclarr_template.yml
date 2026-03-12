@@ -28,6 +28,14 @@ sonarr:
             score: -10000
           - name: WEB-2160p
             score: -10000
+      # Keep DSCP score aligned with TRaSH defaults for Sonarr WEB profiles.
+      - trash_ids:
+          - dc5f2bb0e0262155b5fedd0f6c5d2b55
+        assign_scores_to:
+          - name: WEB-1080p
+            score: 75
+          - name: WEB-2160p
+            score: 75
 
 radarr:
   radarr-main:
