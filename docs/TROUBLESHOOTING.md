@@ -156,6 +156,44 @@ docker-compose -f docker-compose.arr-stack.yml ps gluetun qbittorrent
 docker-compose -f docker-compose.arr-stack.yml logs --tail 100 qbittorrent
 ```
 
+### 5c. qBittorrent HTTPS `502` after Dockhand dashboard upgrades
+
+Symptoms:
+
+- qBittorrent opens via HTTPS reverse proxy URL and returns `502` after a Dockhand-triggered stack update.
+
+Common causes:
+
+- Older Dockhand releases had a known container update issue for shared network modes (`container:`, `host`, `none`), which affects `qbittorrent` when it uses `network_mode: "container:gluetun"`.
+- qBittorrent WebUI can be left in HTTPS mode while your reverse proxy still targets HTTP upstream.
+
+Fix:
+
+```bash
+# 1) Ensure Dockhand is on a fixed version that includes the network-mode update fix
+./substitute_env.sh docker-compose-files/technitium-dockhand_template.yaml docker-compose-files/technitium-dockhand.yaml .env
+docker-compose -f docker-compose-files/technitium-dockhand.yaml pull dockhand
+docker-compose -f docker-compose-files/technitium-dockhand.yaml up -d dockhand
+
+# 2) Recreate the VPN + torrent pair together
+docker-compose -f docker-compose.arr-stack.yml up -d --force-recreate gluetun qbittorrent
+
+# 3) If 502 persists, force qBittorrent WebUI back to HTTP
+CONF="$(find /volume1/docker/appdata/qbittorrent -type f -name 'qBittorrent.conf' | head -n1)"
+echo "Using config: $CONF"
+sudo sed -i 's#^WebUI\\HTTPS\\Enabled=.*#WebUI\\HTTPS\\Enabled=false#' "$CONF"
+sudo sed -i 's#^WebUI\\HTTPS\\CertificatePath=.*#WebUI\\HTTPS\\CertificatePath=#' "$CONF"
+sudo sed -i 's#^WebUI\\HTTPS\\KeyPath=.*#WebUI\\HTTPS\\KeyPath=#' "$CONF"
+docker-compose -f docker-compose.arr-stack.yml restart qbittorrent
+```
+
+Verify:
+
+```bash
+docker-compose -f docker-compose.arr-stack.yml ps gluetun qbittorrent
+docker-compose -f docker-compose.arr-stack.yml logs --tail 120 qbittorrent
+```
+
 ### 6. Data/config persistence problems
 
 Checks:

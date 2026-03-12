@@ -49,7 +49,9 @@ services:
         max-size: "10m"
 
   dockhand:
-    image: fnsys/dockhand:latest
+    # Use a pinned tag to avoid regressions during stack updates.
+    # v1.0.18+ includes a fix for shared network mode container updates.
+    image: fnsys/dockhand:{{DOCKHAND_IMAGE_TAG:-v1.0.20}}
     container_name: dockhand
     restart: unless-stopped
     labels:
