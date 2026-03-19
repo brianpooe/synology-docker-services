@@ -580,6 +580,8 @@ services:
           api_key: "{{RADARR_API_KEY}}"
       QBITTORRENT: >
         - base_url: "http://gluetun:8080"
+          username: "{{QBITTORRENT_USERNAME:-}}"
+          password: "{{QBITTORRENT_PASSWORD:-}}"
           name: "qBittorrent"
       SABNZBD: >
         - base_url: "http://sabnzbd:8282"
