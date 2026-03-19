@@ -579,7 +579,7 @@ services:
         - base_url: "http://radarr:7878"
           api_key: "{{RADARR_API_KEY}}"
       QBITTORRENT: >
-        - base_url: "http://gluetun:8080"
+        - base_url: "{{QBITTORRENT_BASE_URL:-http://gluetun:8080}}"
           username: "{{QBITTORRENT_USERNAME:-}}"
           password: "{{QBITTORRENT_PASSWORD:-}}"
           name: "qBittorrent"
