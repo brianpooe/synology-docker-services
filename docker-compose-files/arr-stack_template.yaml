@@ -517,8 +517,12 @@ services:
       UN_LOG_FILE: /config/unpackerr.log
       UN_SONARR_0_URL: http://sonarr:8989
       UN_SONARR_0_API_KEY: {{SONARR_API_KEY}}
+      UN_SONARR_0_PATHS_0: /data
+      UN_SONARR_0_PROTOCOLS: torrent,TorrentDownloadProtocol,usenet,UsenetDownloadProtocol
       UN_RADARR_0_URL: http://radarr:7878
       UN_RADARR_0_API_KEY: {{RADARR_API_KEY}}
+      UN_RADARR_0_PATHS_0: /data
+      UN_RADARR_0_PROTOCOLS: torrent,TorrentDownloadProtocol,usenet,UsenetDownloadProtocol
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - {{DOCKERCONFDIR}}/unpackerr:/config
@@ -567,12 +571,23 @@ services:
       REMOVE_ORPHANS: "True"
       REMOVE_STALLED: |
         max_strikes: {{DECLUTTARR_MAX_STRIKES:-3}}
+      DETECT_DELETIONS: {{DECLUTTARR_DETECT_DELETIONS:-True}}
       SONARR: >
         - base_url: "http://sonarr:8989"
           api_key: "{{SONARR_API_KEY}}"
       RADARR: >
         - base_url: "http://radarr:7878"
           api_key: "{{RADARR_API_KEY}}"
+      QBITTORRENT: >
+        - base_url: "http://gluetun:8080"
+          name: "qBittorrent"
+      SABNZBD: >
+        - base_url: "http://sabnzbd:8282"
+          api_key: "{{SABNZBD_API_KEY:-}}"
+          name: "SABnzbd"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - {{DOCKERSTORAGEDIR}}:/data
     depends_on:
       sonarr:
         condition: service_healthy
