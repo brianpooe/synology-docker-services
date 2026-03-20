@@ -17,12 +17,14 @@ nano .env  # Fill in your configuration
 ./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
 ./substitute_env.sh docker-compose-files/postgres_template.yaml docker-compose.postgres.yml
 ./substitute_env.sh docker-compose-files/vault_template.yaml docker-compose.vault.yml
+./substitute_env.sh docker-compose-files/beszel-agent_template.yaml docker-compose.beszel-agent.yml
 ./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 
 # 4. Deploy
 docker-compose -f docker-compose.arr-stack.yml up -d
 docker-compose -f docker-compose.postgres.yml up -d
 docker-compose -f docker-compose.vault.yml up -d
+docker-compose -f docker-compose.beszel-agent.yml up -d
 ```
 
 ---
@@ -33,7 +35,6 @@ docker-compose -f docker-compose.vault.yml up -d
 Complete automated media management with VPN protection and security hardening.
 
 **Services:**
-- **Hawser Agent** - Remote host connector for Dockhand
 - **Gluetun** - VPN container (WireGuard/OpenVPN)
 - **qBittorrent** - Torrent client (through VPN)
 - **SABnzbd** - Usenet client (through VPN)
@@ -51,6 +52,18 @@ Complete automated media management with VPN protection and security hardening.
 - ✅ Health checks and dependency management
 - ✅ Resource limits to prevent system exhaustion
 - ✅ Security hardening (no-new-privileges, internal networks)
+
+### 📈 Monitoring Stack (`beszel-agent_template.yaml`)
+Host-level telemetry agent for Beszel Hub.
+
+**Services:**
+- **Beszel Agent** - Host metrics and Docker telemetry collector
+
+**Features:**
+- ✅ Official Beszel agent container setup
+- ✅ Host networking for interface metrics visibility
+- ✅ Docker socket read-only mount
+- ✅ Persistent state volume and constrained memory limit
 
 ### 🗄️ Database Stack (`postgres_template.yaml`)
 PostgreSQL with pgAdmin web interface.
@@ -131,12 +144,13 @@ WIREGUARD_ADDRESSES=10.x.x.x/32
 FIREWALL_VPN_INPUT_PORTS=12345
 SERVER_COUNTRIES=Netherlands
 
-# Hawser Agent (for Dockhand remote host management)
-HAWSER_BIND_IP=0.0.0.0
-HAWSER_PORT=2376
-HAWSER_TOKEN=strong_shared_token
-HAWSER_AGENT_NAME=synology-host
-HAWSER_LOG_LEVEL=info
+# Beszel Agent
+BESZEL_AGENT_KEY=<public_key_from_hub>
+BESZEL_AGENT_TOKEN=<token_from_hub>
+BESZEL_AGENT_HUB_URL=https://beszel.example.com
+BESZEL_AGENT_LISTEN=45876
+BESZEL_AGENT_IMAGE_TAG=latest
+BESZEL_AGENT_MEM_LIMIT=128m
 
 # Caddy reverse proxy template
 CADDY_TLS_EMAIL=admin@example.com
@@ -159,14 +173,9 @@ ssh admin@synology-nas
 id $USER
 ```
 
-**Hawser token details (Dockhand remote host):**
-- `HAWSER_TOKEN` is a shared secret used by Dockhand to authenticate to the Hawser agent.
-- Generate a token:
-```bash
-openssl rand -base64 32
-```
-- Set that value in `.env` as `HAWSER_TOKEN=...`.
-- Use the exact same token in Dockhand when adding the Synology host endpoint.
+**Beszel agent required values:**
+- `BESZEL_AGENT_KEY`, `BESZEL_AGENT_TOKEN`, and `BESZEL_AGENT_HUB_URL` come from Beszel Hub when adding a system.
+- Keep `BESZEL_AGENT_LISTEN=45876` unless you intentionally changed the agent listen port in Beszel.
 
 ### 2. Recyclarr Configuration
 
@@ -193,7 +202,7 @@ Create required directories:
 
 ```bash
 # Config directories
-sudo mkdir -p /volume1/docker/appdata/{gluetun,qbittorrent,sabnzbd,prowlarr,radarr,sonarr,bazarr,emby,seerr,recyclarr,postgres,pgadmin,vault}
+sudo mkdir -p /volume1/docker/appdata/{gluetun,qbittorrent,sabnzbd,prowlarr,radarr,sonarr,bazarr,emby,seerr,recyclarr,postgres,pgadmin,vault,beszel-agent}
 
 # Storage directories
 sudo mkdir -p /volume1/data/{torrents,usenet,media}/{movies,tv,music}
@@ -216,11 +225,13 @@ sudo chown -R 5050:5050 /volume1/docker/appdata/pgadmin
 ./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
 ./substitute_env.sh docker-compose-files/postgres_template.yaml docker-compose.postgres.yml
 ./substitute_env.sh docker-compose-files/vault_template.yaml docker-compose.vault.yml
+./substitute_env.sh docker-compose-files/beszel-agent_template.yaml docker-compose.beszel-agent.yml
 ./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 
 docker-compose -f docker-compose.arr-stack.yml up -d
 docker-compose -f docker-compose.postgres.yml up -d
 docker-compose -f docker-compose.vault.yml up -d
+docker-compose -f docker-compose.beszel-agent.yml up -d
 ```
 
 ### Option 2: Deploy Specific Stack

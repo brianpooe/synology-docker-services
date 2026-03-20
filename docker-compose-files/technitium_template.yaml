@@ -47,39 +47,3 @@ services:
       options:
         max-file: "3"
         max-size: "10m"
-
-  dockhand:
-    # Use a pinned tag to avoid regressions during stack updates.
-    # v1.0.18+ includes a fix for shared network mode container updates.
-    image: fnsys/dockhand:{{DOCKHAND_IMAGE_TAG:-v1.0.20}}
-    container_name: dockhand
-    restart: unless-stopped
-    labels:
-      - "com.synology.stack=management"
-      - "com.synology.service=dockhand"
-    environment:
-      TZ: "{{TZ}}"
-      # Required: set a strong random value in .env
-      ENCRYPTION_KEY: "{{DOCKHAND_ENCRYPTION_KEY}}"
-      PORT: "3000"
-      DATA_DIR: "/opt/dockhand"
-      PUID: "1000"
-      PGID: "1000"
-    group_add:
-      - "{{DOCKER_GID:-999}}"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      # Local persistent config path for Raspberry Pi deployments
-      - {{DOCKHAND_DATA_DIR:-./appdata/dockhand}}:/opt/dockhand
-      # Host folder containing compose stacks Dockhand should manage
-      - {{DOCKHAND_STACKS_DIR:-./stacks}}:/opt/stacks
-    ports:
-      - "{{DOCKHAND_BIND_IP:-0.0.0.0}}:{{DOCKHAND_PORT:-3000}}:3000/tcp"
-    mem_limit: "{{DOCKHAND_MEM_LIMIT:-256m}}"
-    security_opt:
-      - no-new-privileges:true
-    logging:
-      driver: json-file
-      options:
-        max-file: "3"
-        max-size: "10m"

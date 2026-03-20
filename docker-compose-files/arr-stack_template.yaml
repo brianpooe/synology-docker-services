@@ -5,39 +5,6 @@ version: '3.8'
 # Memory limits are supported and configured below
 
 services:
-  hawser:
-    image: ghcr.io/finsys/hawser:latest
-    container_name: hawser
-    restart: unless-stopped
-    labels:
-      - "com.synology.stack=media"
-      - "com.synology.service=hawser-agent"
-    networks:
-      - hawser-network
-    ports:
-      - "{{HAWSER_BIND_IP:-0.0.0.0}}:{{HAWSER_PORT:-2376}}:2376"
-    environment:
-      PORT: "2376"
-      DOCKER_SOCKET: /var/run/docker.sock
-      TOKEN: "{{HAWSER_TOKEN:-}}"
-      AGENT_NAME: "{{HAWSER_AGENT_NAME:-synology-host}}"
-      LOG_LEVEL: "{{HAWSER_LOG_LEVEL:-info}}"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 32M
-    security_opt:
-      - no-new-privileges:true
-    logging:
-      driver: json-file
-      options:
-        max-file: "{{DOCKERLOGGING_MAXFILE}}"
-        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
-
   gluetun:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
@@ -90,8 +57,7 @@ services:
   qbittorrent:
     image: ghcr.io/hotio/qbittorrent:latest
     container_name: qbittorrent
-    # Use direct container network mode for better compatibility with single-service recreate flows
-    # (for example Dockhand updates on Synology).
+    # Use direct container network mode for better compatibility with single-service recreate flows.
     network_mode: "container:gluetun"
     restart: unless-stopped
     labels:
@@ -619,9 +585,3 @@ networks:
     name: vpn_network
     labels:
       - "com.synology.network=media"
-
-  hawser-network:
-    driver: bridge
-    name: hawser_network
-    labels:
-      - "com.synology.network=hawser"

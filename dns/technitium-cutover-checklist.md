@@ -38,8 +38,8 @@ A wildcard record closes this drift gap permanently.
 ## Cutover plan
 
 ### Docker stack files in this repo
-- Compose template: [technitium-dockhand_template.yaml](../docker-compose-files/technitium-dockhand_template.yaml)
-- Deployment guide: [technitium-dockhand-deployment.md](./technitium-dockhand-deployment.md)
+- Compose template: [technitium_template.yaml](../docker-compose-files/technitium_template.yaml)
+- Deployment guide: [technitium-deployment.md](./technitium-deployment.md)
 
 ### 1. Keep network references stable
 - Keep Technitium service IP as `10.60.0.5`.

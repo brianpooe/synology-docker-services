@@ -77,11 +77,6 @@ dns01.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     reverse_proxy {{CADDY_DNS_PREFIX:-10.60.0}}.5:5380
 }
 
-dockhand.{{CADDY_BASE_DOMAIN:-home.example.com}} {
-    import common
-    reverse_proxy {{CADDY_DNS_PREFIX:-10.60.0}}.5:3000
-}
-
 ## 3) Office services
 nas.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common

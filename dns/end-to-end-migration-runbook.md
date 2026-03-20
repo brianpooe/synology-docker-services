@@ -1,4 +1,4 @@
-# End-to-End Migration Runbook (Pi-hole on Pi Zero 2 W -> Technitium + Dockhand on Pi 4)
+# End-to-End Migration Runbook (Pi-hole on Pi Zero 2 W -> Technitium on Pi 4)
 
 Use this as the single flow document. Each step links to the deeper guide where needed.
 
@@ -28,7 +28,7 @@ docker compose version
 ```
 
 Expected:
-- `uname -m` should be `aarch64` (64-bit) for best compatibility with Dockhand.
+- `uname -m` should be `aarch64` (64-bit) for best compatibility with current Docker images.
 - OS can be Raspberry Pi OS Lite based on Debian Trixie.
 - Docker Engine + Compose plugin installed and working.
 - 2GB RAM Pi 4 is fine for this stack with current memory caps.
@@ -37,23 +37,19 @@ Expected:
 1. Fill required values in `.env` (or environment file you use):
    - `DNS_BIND_IP=10.60.0.6` (temporary during staging)
    - `TECHNITIUM_ADMIN_PASSWORD=<strong-password>`
-   - `DOCKHAND_ENCRYPTION_KEY=<base64 key from openssl rand -base64 32>`
    - `TECHNITIUM_CONFIG_DIR=./appdata/technitium`
-   - `DOCKHAND_DATA_DIR=./appdata/dockhand`
-   - `DOCKER_GID=<docker.sock group id>`
-   - `DOCKHAND_STACKS_DIR=./stacks` (or local path you want Dockhand to manage)
 2. Render the compose from template:
 ```bash
-./substitute_env.sh docker-compose-files/technitium-dockhand_template.yaml docker-compose-files/technitium-dockhand.yaml .env
+./substitute_env.sh docker-compose-files/technitium_template.yaml docker-compose-files/technitium.yaml .env
 ```
 3. Start the stack:
 ```bash
-docker compose -f docker-compose-files/technitium-dockhand.yaml up -d
+docker compose -f docker-compose-files/technitium.yaml up -d
 ```
 
 Reference:
-- [technitium-dockhand-deployment.md](./technitium-dockhand-deployment.md)
-- [technitium-dockhand_template.yaml](../docker-compose-files/technitium-dockhand_template.yaml)
+- [technitium-deployment.md](./technitium-deployment.md)
+- [technitium_template.yaml](../docker-compose-files/technitium_template.yaml)
 
 ## 4) Configure Technitium to mirror current behavior
 1. Open Technitium UI on Pi 4 temporary IP:
@@ -117,8 +113,8 @@ Optional hardening for encrypted DNS bypass:
    - set `DNS_BIND_IP=10.60.0.5`
 8. Re-render and restart stack:
 ```bash
-./substitute_env.sh docker-compose-files/technitium-dockhand_template.yaml docker-compose-files/technitium-dockhand.yaml .env
-docker compose -f docker-compose-files/technitium-dockhand.yaml up -d
+./substitute_env.sh docker-compose-files/technitium_template.yaml docker-compose-files/technitium.yaml .env
+docker compose -f docker-compose-files/technitium.yaml up -d
 ```
 
 ## 8) Post-cutover validation (production IP)
