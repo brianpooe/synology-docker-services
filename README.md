@@ -17,6 +17,7 @@ nano .env  # Fill in your configuration
 ./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
 ./substitute_env.sh docker-compose-files/postgres_template.yaml docker-compose.postgres.yml
 ./substitute_env.sh docker-compose-files/vault_template.yaml docker-compose.vault.yml
+./substitute_env.sh docker-compose-files/socket-proxy_template.yaml docker-compose.beszel-proxy.yml
 ./substitute_env.sh docker-compose-files/beszel-agent_template.yaml docker-compose.beszel-agent.yml
 ./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 
@@ -24,6 +25,7 @@ nano .env  # Fill in your configuration
 docker-compose -f docker-compose.arr-stack.yml up -d
 docker-compose -f docker-compose.postgres.yml up -d
 docker-compose -f docker-compose.vault.yml up -d
+docker-compose -f docker-compose.beszel-proxy.yml up -d
 docker-compose -f docker-compose.beszel-agent.yml up -d
 ```
 
@@ -53,16 +55,17 @@ Complete automated media management with VPN protection and security hardening.
 - ✅ Resource limits to prevent system exhaustion
 - ✅ Security hardening (no-new-privileges, internal networks)
 
-### 📈 Monitoring Stack (`beszel-agent_template.yaml`)
-Host-level telemetry agent for Beszel Hub.
+### 📈 Monitoring Stack (`socket-proxy_template.yaml` + `beszel-agent_template.yaml`)
+Host-level telemetry stack for Beszel Hub with restricted Docker API access.
 
 **Services:**
+- **Beszel Socket Proxy** - Restricted Docker API proxy on localhost
 - **Beszel Agent** - Host metrics and Docker telemetry collector
 
 **Features:**
 - ✅ Official Beszel agent container setup
+- ✅ Restricted Docker API access via socket-proxy (instead of direct socket mount)
 - ✅ Host networking for interface metrics visibility
-- ✅ Docker socket read-only mount
 - ✅ Persistent state volume and constrained memory limit
 
 ### 🗄️ Database Stack (`postgres_template.yaml`)
@@ -144,6 +147,13 @@ WIREGUARD_ADDRESSES=10.x.x.x/32
 FIREWALL_VPN_INPUT_PORTS=12345
 SERVER_COUNTRIES=Netherlands
 
+# Beszel Socket Proxy
+BESZEL_SOCKET_PROXY_IMAGE_TAG=latest
+BESZEL_SOCKET_PROXY_BIND_IP=127.0.0.1
+BESZEL_SOCKET_PROXY_PORT=2375
+BESZEL_SOCKET_PROXY_LOG_LEVEL=info
+BESZEL_SOCKET_PROXY_MEM_LIMIT=64m
+
 # Beszel Agent
 BESZEL_AGENT_KEY=<public_key_from_hub>
 BESZEL_AGENT_TOKEN=<token_from_hub>
@@ -176,6 +186,7 @@ id $USER
 **Beszel agent required values:**
 - `BESZEL_AGENT_KEY`, `BESZEL_AGENT_TOKEN`, and `BESZEL_AGENT_HUB_URL` come from Beszel Hub when adding a system.
 - Keep `BESZEL_AGENT_LISTEN=45876` unless you intentionally changed the agent listen port in Beszel.
+- Keep `BESZEL_SOCKET_PROXY_BIND_IP=127.0.0.1` so the Docker API is not exposed on your LAN.
 
 ### 2. Recyclarr Configuration
 
@@ -225,12 +236,14 @@ sudo chown -R 5050:5050 /volume1/docker/appdata/pgadmin
 ./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
 ./substitute_env.sh docker-compose-files/postgres_template.yaml docker-compose.postgres.yml
 ./substitute_env.sh docker-compose-files/vault_template.yaml docker-compose.vault.yml
+./substitute_env.sh docker-compose-files/socket-proxy_template.yaml docker-compose.beszel-proxy.yml
 ./substitute_env.sh docker-compose-files/beszel-agent_template.yaml docker-compose.beszel-agent.yml
 ./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 
 docker-compose -f docker-compose.arr-stack.yml up -d
 docker-compose -f docker-compose.postgres.yml up -d
 docker-compose -f docker-compose.vault.yml up -d
+docker-compose -f docker-compose.beszel-proxy.yml up -d
 docker-compose -f docker-compose.beszel-agent.yml up -d
 ```
 
