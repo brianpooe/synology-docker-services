@@ -23,7 +23,8 @@ services:
       DOCKER_HOST: "tcp://127.0.0.1:{{BESZEL_SOCKET_PROXY_PORT:-2375}}"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/beszel-agent:/var/lib/beszel-agent
+      # Local persistent state for Beszel agent (resolved from compose file location).
+      - ./appdata/beszel-agent:/var/lib/beszel-agent
       # Monitor additional disks by mounting them into /extra-filesystems.
       # - /volume1/data:/extra-filesystems/data:ro
     deploy:
