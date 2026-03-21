@@ -1,5 +1,8 @@
 # pfSense + Pi-hole DNS Architecture Analysis and Technitium Mapping
 
+> Status note (2026-03-21): This document is a historical analysis snapshot from an earlier backup/cutover stage.  
+> Current-state network documentation is maintained in `docs/network/homelab-network.md` using public-safe notation (`10.x.x.x`, `home.example.com`).
+
 ## Scope and source files
 - pfSense backup: `/Users/luda/Downloads/config-pfSense.home.arpa-20260301104624.xml`
 - Pi-hole teleporter: `/Users/luda/Downloads/pi-hole-raspberrypihole-teleporter_2026-03-01_08-38-24.tar.gz`

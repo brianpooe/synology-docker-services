@@ -1,5 +1,8 @@
 # pfSense Rule Set: Force DNS on LAN + All VLANs
 
+> Status note (2026-03-21): In the current pfSense backup, this runbook has already been applied (LAN + Office + Family + IoT + Media + Guest redirects present).  
+> Keep this file as implementation/reference guidance.
+
 This runbook enforces DNS redirection to your local resolver (`10.60.0.5`) across:
 - LAN (`10.1.0.0/24`)
 - Office / OPT2 (`10.10.0.0/24`)
@@ -9,7 +12,7 @@ This runbook enforces DNS redirection to your local resolver (`10.60.0.5`) acros
 - Guest / OPT6 (`10.50.0.0/24`)
 
 ## Why this is needed
-Right now, redirect NAT is only on LAN. VLAN clients can still bypass your DNS filter by hardcoding public DNS on port 53.
+If this runbook has not yet been applied in your environment, VLAN clients can bypass your DNS filter by hardcoding public DNS on port 53.
 
 ## Prerequisites
 - DNS server IP remains `10.60.0.5` (Pi-hole now, Technitium later).

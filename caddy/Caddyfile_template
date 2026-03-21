@@ -166,7 +166,7 @@ beszel.{{CADDY_BASE_DOMAIN:-home.example.com}} {
 drawio.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
     redir / /draw/ 308
-    reverse_proxy 192.168.10.9:8080
+    reverse_proxy {{CADDY_OFFICE_PREFIX:-10.10.0}}.9:8080
 }
 
 gramps.{{CADDY_BASE_DOMAIN:-home.example.com}} {

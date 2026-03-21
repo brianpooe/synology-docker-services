@@ -1,0 +1,67 @@
+cloud-architecture-diagram
+title Homelab Logical Segmentation and Access Policy (Sanitized)
+direction right
+
+VLAN_Segments [color: blue, icon: server] {
+  LAN [icon: monitor, label: "LAN (10.1.0.0/24)"]
+  Office [icon: monitor, label: "Office (10.10.0.0/24)"]
+  Family [icon: wifi, label: "Family (10.20.0.0/24)"]
+  IoT [icon: wifi, label: "IoT (10.30.0.0/24)"]
+  Media [icon: monitor, label: "Media (10.40.0.0/24)"]
+  Guest [icon: wifi, label: "Guest (10.50.0.0/24)"]
+  AdBlock [icon: server, label: "AdBlock (10.60.0.0/24)"]
+}
+
+pfSense_Policy [color: red, icon: shield] {
+  NetgatePolicy [icon: shield, label: "pfSense Policy Plane"]
+  DNSRedirect [icon: server, label: "DNS NAT Redirect (53 -> LOCAL_DNS)"]
+}
+
+Service_Anchors [color: green, icon: server] {
+  TechnitiumDNS [icon: server, label: "Technitium DNS (10.60.0.5)"]
+  CaddyHost [icon: server, label: "CADDY_HOST (10.10.0.5)"]
+  RFC1918Networks [icon: server, label: "Other Private Networks (RFC1918)"]
+  Internet [icon: globe]
+}
+
+// Routed policy path
+LAN > NetgatePolicy: routed policy
+Office > NetgatePolicy: routed policy
+Family > NetgatePolicy: routed policy
+IoT > NetgatePolicy: routed policy
+Media > NetgatePolicy: routed policy
+Guest > NetgatePolicy: routed policy
+AdBlock > NetgatePolicy: routed policy
+
+NetgatePolicy > DNSRedirect: firewall/NAT control
+NetgatePolicy > Internet: internet egress
+
+// DNS dependency (forced DNS on client VLANs)
+LAN --> TechnitiumDNS: forced DNS
+Office --> TechnitiumDNS: forced DNS (except CADDY_HOST source)
+Family --> TechnitiumDNS: forced DNS
+IoT --> TechnitiumDNS: forced DNS
+Media --> TechnitiumDNS: forced DNS
+Guest --> TechnitiumDNS: forced DNS
+
+// Intent-based policy highlights
+Family > CaddyHost: limited TCP allow
+Media > CaddyHost: limited TCP allow
+Office > CaddyHost: local Office services
+
+Family > RFC1918Networks: blocked except explicit allows [color: red]
+IoT > RFC1918Networks: blocked except explicit allows [color: red]
+Media > RFC1918Networks: blocked except explicit allows [color: red]
+Guest > RFC1918Networks: blocked except explicit allows [color: red]
+Office > RFC1918Networks: broad internal access
+AdBlock > RFC1918Networks: broad internal access (current state)
+
+TechnitiumDNS > Internet: upstream DNS/update access
+
+legend [position: bottom-left] {
+  [connection: >, label: Routed/allowed policy path]
+  [connection: -->, label: Forced DNS dependency]
+  [color: red, label: Isolation or deny-boundary intent]
+  [color: blue, label: VLAN client segments]
+  [color: green, label: Service anchors]
+}

@@ -1,151 +1,173 @@
 # Homelab Network
 
 ## 1. Overview
-This document maps the homelab network using two sources:
-- Primary truth: user-provided topology and access intent (2026-03-21).
-- Repo evidence: DNS/pfSense runbooks, Caddy template, and environment templates.
+This document reflects the current network state using:
+- User-provided topology and intent.
+- Repo configuration/templates.
+- pfSense backup provided by user: `config-pfSense.home.arpa-20260321225944.xml` (private local file, not committed to repo).
 
-High-level flow:
-- Internet fiber enters through ISP ONT.
-- ONT uplinks to pfSense (routing, VLANs, policy).
-- pfSense uplinks to the core PoE switch.
-- Core switch fans out to AP, downstream switches, homelab hosts, and DNS/ad-block node.
-- DNS/ad-blocking is centralized on the AdBlock VLAN (`10.60.0.0/24`) with resolver service at `10.60.0.5` in repo docs.
-- Reverse proxy is hosted on Office VLAN and is used as the controlled cross-VLAN destination for Family/Media access intent.
+Public-safe notation policy used in this repository:
+- Internal RFC1918 layout is represented as `10.<vlan>.0/24` examples.
+- Internal domain is represented as `home.example.com`.
+
+High-level design:
+- Fibre Internet -> ISP ONT -> Netgate 1100/pfSense.
+- pfSense trunks VLANs to core switching.
+- Core switching fans out to AP, media switch, office/homelab switch, Mac mini, and Raspberry Pi DNS node.
+- Technitium DNS/ad-blocking is centralized on AdBlock VLAN.
+- Office-hosted reverse proxy is the controlled cross-VLAN destination for Family/Media.
+
+Diagram source files (Eraser diagram-as-code, replacing Draw.io as editable source):
+- `docs/network/diagrams/homelab-network-physical.eraserdiagram`
+- `docs/network/diagrams/homelab-network-logical.eraserdiagram`
+
+Legacy retained for now:
+- `docs/network/diagrams/homelab-network.drawio`
 
 ## Evidence Table
-| Fact | Value | Source file(s) | Confidence |
+| Fact | Value (public-safe) | Source file(s) | Confidence |
 |---|---|---|---|
-| VLAN names and CIDRs are documented | LAN `10.1.0.0/24`, Office `10.10.0.0/24`, Family `10.20.0.0/24`, IoT `10.30.0.0/24`, Media `10.40.0.0/24`, Guest `10.50.0.0/24`, Adblock `10.60.0.0/24` | `dns/pfsense-pihole-technitium-analysis.md`, `dns/pfsense-forced-dns-all-vlans.md` | High |
-| DNS resolver service IP | `10.60.0.5` | `dns/pfsense-forced-dns-all-vlans.md`, `.env.sample` | High |
-| Office reverse proxy host/IP used in policy docs | `caddy.home.example.com` -> `10.10.0.5` (`CADDY_HOST`) | `dns/technitium-cutover-checklist.md`, `dns/pfsense-forced-dns-all-vlans.md` | High |
-| Caddy base domain default | `home.example.com` (template/default) | `.env.sample`, `caddy/Caddyfile_template` | High |
-| Caddy infra hostnames include switch and DNS/admin endpoints | `switchlite8poe`, `tplink16de`, `dns01`, `nas`, `proxmox`, `pbs`, etc. | `caddy/Caddyfile_template` | High |
-| pfSense DNS interception status described in repo | Current-state analysis says DNS NAT redirect is LAN-only; runbooks define extension to VLANs | `dns/pfsense-pihole-technitium-analysis.md`, `dns/pfsense-forced-dns-all-vlans.md` | Medium-High |
-| Raspberry Pi 4 2GB context for DNS/ad-blocking stack | Pi 4 2GB deployment and cutover steps are documented | `dns/end-to-end-migration-runbook.md`, `dns/technitium-deployment.md` | Medium |
-| Physical hardware chain (ONT, Netgate, switches, AP, endpoints) | As specified by user | User brief (2026-03-21) | High |
+| Active VLAN interfaces and gateways exist for LAN, Office, Family, IoT, Media, Guest, AdBlock | LAN `10.1.0.0/24`, Office `10.10.0.0/24`, Family `10.20.0.0/24`, IoT `10.30.0.0/24`, Media `10.40.0.0/24`, Guest `10.50.0.0/24`, AdBlock `10.60.0.0/24` | `config-pfSense.home.arpa-20260321225944.xml` (`<interfaces>`, `<vlans>`) | High |
+| DHCP hands out centralized DNS on client segments | Clients use `10.60.0.5` as DNS on LAN + Office + Family + IoT + Media + Guest | `config-pfSense.home.arpa-20260321225944.xml` (`<dhcpd>`) | High |
+| DNS platform is Technitium on Raspberry Pi in AdBlock VLAN | `LOCAL_DNS` alias points to `10.60.0.5`; static map `dns01` exists on AdBlock VLAN | `config-pfSense.home.arpa-20260321225944.xml` (`<aliases>`, `<dhcpd><opt7>`) | High |
+| Forced DNS NAT is active on LAN + Office + Family + IoT + Media + Guest | NAT redirect rules to `LOCAL_DNS:53` exist on `lan`, `opt2`, `opt3`, `opt4`, `opt5`, `opt6` | `config-pfSense.home.arpa-20260321225944.xml` (`<nat>`) | High |
+| Office has DNS redirect exception for reverse proxy host | Office NAT rule source excludes `CADDY_HOST` | `config-pfSense.home.arpa-20260321225944.xml` (`<nat>`) | High |
+| Family and Media have explicit reverse-proxy access rule | TCP pass rules from Family/Media to reverse proxy host (`CADDY_HOST`) | `config-pfSense.home.arpa-20260321225944.xml` (`<filter>`) | High |
+| IoT and Guest are isolated from other private networks except explicit rules | `Block access to other networks` (RFC1918) + own-subnet + DNS + internet pass ordering | `config-pfSense.home.arpa-20260321225944.xml` (`<filter>`) | High |
+| Core infrastructure static mappings on LAN exist | USW Lite 8, Mac mini, U6 LR, and TL-SG1016DE have static mappings on LAN | `config-pfSense.home.arpa-20260321225944.xml` (`<dhcpd><lan>`) | High |
+| Caddy and DS920+ are statically mapped on Office VLAN | Reverse proxy (`10.10.0.5`) and DS920+ (`10.10.0.24`) mapped in Office subnet example | `config-pfSense.home.arpa-20260321225944.xml` (`<dhcpd><opt2>`) | High |
+| Published reverse-proxy naming uses safe domain examples | `home.example.com` in templates | `.env.sample`, `caddy/Caddyfile_template` | High |
 
 ## 2. Device Inventory
 | Device / Group | Role | Verified details |
 |---|---|---|
-| Calix GigaPoint 803G GPON ONT | ISP optical termination | From user topology (not repo-verified) |
-| Netgate 1100 (pfSense) | Router/firewall, VLAN gateway, policy enforcement | VLAN names/CIDRs and policy behavior are documented in `dns/*` runbooks |
-| Ubiquiti UB-USW-LITE-8-POE | Core aggregation switch after pfSense | From user topology (not repo-verified) |
-| UniFi U6 LR AP | Managed Wi-Fi AP distributing VLAN-tagged SSIDs/traffic | From user topology (not repo-verified) |
-| TP-Link TL-SG108 (unmanaged) | Media switch segment | From user topology (not repo-verified) |
-| TP-Link TL-SG1016DE (managed) | Office/homelab switch segment | From user topology (not repo-verified) |
-| Raspberry Pi 4 Model B (2GB) | DNS/ad-block host in AdBlock VLAN | Pi 4 2GB DNS deployment documented in `dns/technitium-deployment.md`; resolver IP `10.60.0.5` documented in `dns/*` |
-| Mac mini | Endpoint connected to core switch | From user topology (not repo-verified) |
-| Intel NUC | Homelab endpoint on office/homelab switch | From user topology (not repo-verified) |
-| Synology DS920+ | NAS/homelab service host | Repo is Synology-focused; Caddy template maps `nas` to Office subnet prefix (`10.10.0.24:5000`) |
-| Wireless family devices | Family VLAN clients | From user topology |
-| Guest devices | Guest VLAN clients | From user topology |
-| IoT devices | IoT VLAN clients | From user topology |
-| Media devices (Samsung TV, Apple TV, soundbar, etc.) | Media VLAN clients | From user topology |
+| Calix GigaPoint 803G GPON ONT | ISP optical termination | User topology source |
+| Netgate 1100 (pfSense) | Router/firewall, inter-VLAN routing, NAT/policy | VLAN interfaces, NAT, aliases, and filter rules verified in pfSense backup |
+| Ubiquiti UB-USW-LITE-8-POE | Core aggregation switch | Static mapping on LAN as `10.1.0.5` example |
+| UniFi U6 LR (managed AP) | Multi-VLAN wireless AP | Static mapping on LAN as `10.1.0.7` example |
+| TP-Link TL-SG108 (unmanaged) | Media downstream switch | User topology source (no direct pfSense static mapping expected) |
+| TP-Link TL-SG1016DE (managed) | Office/homelab downstream switch | Static mapping on LAN as `10.1.0.8` example |
+| Raspberry Pi 4 Model B (2GB) | Technitium DNS/ad-block host | Static mapping `dns01` on AdBlock VLAN as `10.60.0.5` example |
+| Mac mini | Endpoint on core switch/LAN | Static mapping on LAN as `10.1.0.6` example |
+| Intel NUC | Homelab endpoint | User-confirmed static IP on Office VLAN (public-safe value not published here) |
+| Synology DS920+ | NAS/homelab service host | Static mapping in Office VLAN as `10.10.0.24` example |
+| Office reverse proxy host (Caddy) | Controlled cross-VLAN ingress target | Alias `CADDY_HOST`; static mapping in Office VLAN as `10.10.0.5` example |
+| Family/Guest/IoT wireless clients | Client groups on AP | Family and other client DHCP scopes verified |
+| Media clients | TV/Apple TV/soundbar class clients | Media VLAN DHCP scope and static TV entry verified |
 
 ## 3. Physical Topology
 Physical path (left-to-right):
-1. Internet (500/500 Mbps fiber)
-2. Calix GigaPoint 803G ONT
-3. Netgate 1100 running pfSense
+1. Internet (fibre)
+2. Calix ONT
+3. Netgate 1100 / pfSense
 4. Ubiquiti UB-USW-LITE-8-POE (core switch)
 5. Downstream from core switch:
-   - UniFi U6 LR managed AP (PoE, VLAN distribution)
+   - UniFi U6 LR managed AP (PoE)
    - TP-Link TL-SG108 (media segment)
    - TP-Link TL-SG1016DE (office/homelab segment)
    - Mac mini
-   - Raspberry Pi 4 (AdBlock VLAN; DNS/ad blocker)
+   - Raspberry Pi 4 (Technitium DNS)
 6. Downstream endpoints:
-   - Media clients from TL-SG108
-   - Intel NUC, Synology DS920+, and other office/homelab devices from TL-SG1016DE
-   - Wireless clients (Family/Guest/IoT emphasis) via U6 LR
+   - Media clients via TL-SG108
+   - Office/homelab endpoints via TL-SG1016DE (including DS920+, other infra)
+   - Wireless Family/Guest/IoT clients via U6 LR
+
+Physical/logical clarification:
+- Raspberry Pi DNS host is physically connected to switching.
+- pfSense-to-DNS is a routed logical resolver path, not a direct cable.
+
+Netgate internal switch implementation details are intentionally abstracted in this public-safe document.
 
 ## 4. Logical Topology / VLAN Layout
-| VLAN | Purpose | CIDR | Typical residents |
+| VLAN | Purpose | CIDR (public-safe) | Typical residents |
 |---|---|---|---|
-| Office | Admin/workstation + homelab management zone | `10.10.0.0/24` (repo) | Caddy/reverse proxy host (`10.10.0.5`), NAS/services, office devices |
-| Family | Family user traffic, controlled access to office reverse proxy | `10.20.0.0/24` (repo) | Family wireless clients |
-| IoT | Device isolation segment | `10.30.0.0/24` (repo) | IoT clients |
-| Media | Media endpoint segment with controlled access to office reverse proxy | `10.40.0.0/24` (repo) | TV/Apple TV/soundbar/media devices |
-| Guest | Guest client isolation segment | `10.50.0.0/24` (repo) | Guest devices |
-| AdBlock | Central DNS/ad-blocking services | `10.60.0.0/24` (repo) | Raspberry Pi DNS/ad-block node (`10.60.0.5` in repo docs) |
-| LAN | Additional local segment referenced by pfSense docs | `10.1.0.0/24` (repo) | LAN services and gateway path |
-
-Notes:
-- CIDRs above are repo-documented in pfSense/DNS runbooks.
-- Domain values in templates use `home.example.com` defaults; production domain is not confirmed in repo.
+| LAN | Core local management/client segment | `10.1.0.0/24` | Switch/AP management, Mac mini, baseline LAN clients |
+| Office | Admin/workstation + homelab services | `10.10.0.0/24` | Caddy reverse proxy, DS920+, Proxmox-related services |
+| Family | Family user segment | `10.20.0.0/24` | Family wireless devices |
+| IoT | IoT isolation segment | `10.30.0.0/24` | IoT clients |
+| Media | Media device segment | `10.40.0.0/24` | TV/media devices |
+| Guest | Guest isolation segment | `10.50.0.0/24` | Guest clients |
+| AdBlock | Central DNS/ad-block services | `10.60.0.0/24` | Technitium DNS host |
 
 ## 5. Access Policy Summary
-### Plain-language policy intent
-- Office: full internal access to itself, LAN, and all VLANs.
-- Family: access to itself plus Office reverse proxy destination only.
-- IoT: self-only.
-- Media: access to itself plus Office reverse proxy destination only.
-- Guest: self-only.
-- AdBlock: access to all VLANs including LAN.
+### Plain-language policy (current pfSense backup)
+- LAN: default allow to any; DNS redirect present.
+- Office: broad access policy (allow any); DNS redirect present with `CADDY_HOST` source exception.
+- Family: allow own subnet, allow TCP to Office reverse proxy, allow DNS to resolver, block other RFC1918, then allow internet.
+- IoT: allow own subnet, allow DNS to resolver, block other RFC1918, then allow internet.
+- Media: allow own subnet, allow TCP to Office reverse proxy, allow DNS to resolver, block other RFC1918, then allow internet.
+- Guest: allow own subnet, allow DNS to resolver, block other RFC1918, then allow internet.
+- AdBlock: broad allow policy (pass any).
 
-### Compact matrix (intent)
-| Source VLAN | Self | LAN | Office (general) | Office reverse proxy | Family | IoT | Media | Guest | AdBlock |
-|---|---|---|---|---|---|---|---|---|---|
-| Office | Allow | Allow | Allow | Allow | Allow | Allow | Allow | Allow | Allow |
-| Family | Allow | Deny | Deny | Allow | Deny | Deny | Deny | Deny | Allow (DNS path expected) |
-| IoT | Allow | Deny | Deny | Deny | Deny | Deny | Deny | Deny | Allow (DNS path expected) |
-| Media | Allow | Deny | Deny | Allow | Deny | Deny | Deny | Deny | Allow (DNS path expected) |
-| Guest | Allow | Deny | Deny | Deny | Deny | Deny | Deny | Deny | Allow (DNS path expected) |
-| AdBlock | Allow | Allow | Allow | N/A | Allow | Allow | Allow | Allow | Allow |
+AdBlock tightening guidance:
+- Current behavior is functional and intentionally permissive.
+- If you want tighter posture later, start with least-disruptive controls:
+- Allow required flows only (DNS, upstream resolver access, update traffic, and admin access from Office).
+- Then deny broad east-west traffic from AdBlock to unrelated internal subnets.
 
-Policy traceability:
-- Intent rows come from the user brief.
-- DNS exceptions are supported by repo pfSense runbooks that explicitly permit/redirect DNS to `10.60.0.5`.
+### Recommended `OPT7` Rule Order (Moderate)
+This order is for the **AdBlock interface rules** (top to bottom), using sanitized public-safe values.
+
+Required aliases:
+- `LOCAL_DNS` = `10.60.0.5`
+- `PFSENSE_DNS` = `10.1.0.1` (create this if you use pfSense as Technitium upstream)
+- `RFC1918` (already present in your config)
+
+Rule order:
+| # | Action | Source | Destination | Protocol/Port | Purpose |
+|---|---|---|---|---|---|
+| 1 | Pass | `LOCAL_DNS` | `PFSENSE_DNS` | TCP/UDP 53 | Use when Technitium forwards to pfSense |
+| 2 | Pass | `LOCAL_DNS` | `!RFC1918` | TCP/UDP 53 | Use when Technitium does direct recursion |
+| 3 | Pass | `LOCAL_DNS` | `!RFC1918` | TCP 443 (optional 80) | Blocklist/package/update access |
+| 4 | Pass | `LOCAL_DNS` | `!RFC1918` | UDP 123 | Time sync (NTP) |
+| 5 | Block (log) | `OPT7 net` | `RFC1918` | any | Prevent broad lateral movement to internal subnets |
+| 6 | Remove/disable broad pass | `OPT7 net` | `any` | any | Replace current permissive `pass any` stance |
+
+Operational notes:
+- Keep **either Rule 1 or Rule 2** depending on your Technitium upstream mode.
+- Client-to-DNS access remains controlled on client VLAN interfaces (LAN/Office/Family/IoT/Media/Guest), so tightening `OPT7` does not inherently break client DNS.
+- Apply changes during a low-risk window and test from each VLAN after each step.
+
+### Compact matrix (sanitized)
+| Source VLAN | Own Subnet | Other Private Subnets (RFC1918) | Office Reverse Proxy | DNS Resolver (`10.60.0.5`) | Internet |
+|---|---|---|---|---|---|
+| LAN | Allow | Allow | Allow | Force-redirect/allow | Allow |
+| Office | Allow | Allow | Allow | Force-redirect with `CADDY_HOST` exception | Allow |
+| Family | Allow | Deny (except explicit allows) | Allow (TCP) | Force-redirect/allow | Allow |
+| IoT | Allow | Deny (except explicit DNS) | Deny | Force-redirect/allow | Allow |
+| Media | Allow | Deny (except explicit allows) | Allow (TCP) | Force-redirect/allow | Allow |
+| Guest | Allow | Deny (except explicit DNS) | Deny | Force-redirect/allow | Allow |
+| AdBlock | Allow | Allow | Allow | N/A (hosting resolver) | Allow |
 
 ## 6. Wireless and Media Segmentation
-- UniFi U6 LR is the wireless entry point carrying multiple VLANs, with practical emphasis on Family, Guest, and IoT traffic per user topology.
-- Media devices are grouped behind TP-Link TL-SG108 (unmanaged), treated as Media VLAN clients in the logical model.
-- Office/homelab infrastructure is grouped behind TP-Link TL-SG1016DE (managed) for Intel NUC, Synology DS920+, and related systems.
+- UniFi U6 LR is managed and distributes VLAN-backed wireless client traffic.
+- Family/Guest/IoT traffic is primarily represented as Wi-Fi client groups behind the AP.
+- Media devices are grouped behind TP-Link TL-SG108.
+- Office/homelab infrastructure is grouped behind TP-Link TL-SG1016DE.
 
 ## 7. DNS / Ad-Blocking Path
-Verified flow from repo docs:
-1. Clients receive DNS settings that point to resolver IP `10.60.0.5` (pfSense + DNS runbook docs).
-2. DNS/ad-block service runs in the AdBlock VLAN (`10.60.0.0/24`) on Raspberry Pi-hosted stack (Pi-hole current, Technitium target).
-3. Local split DNS maps reverse-proxied app names toward the Office-hosted reverse proxy (`caddy.home.example.com` -> `10.10.0.5`).
-
-Repo-derived details:
-- Resolver IP: `10.60.0.5`
-- Reverse proxy DNS anchor: `caddy.home.example.com`
-- Upstream strategy references include forwarding via pfSense (`10.1.0.1`) or direct recursion (migration option)
-- Blocklist reference: StevenBlack hosts list
+Current-state flow (sanitized):
+1. DHCP hands clients resolver `10.60.0.5` on LAN + Office + Family + IoT + Media + Guest.
+2. pfSense NAT redirects port 53 traffic to `LOCAL_DNS` on LAN + Office + Family + IoT + Media + Guest.
+3. Office redirect rule excludes `CADDY_HOST` source to avoid ACME DNS-01 resolution issues.
+4. `LOCAL_DNS` alias points to Technitium on AdBlock VLAN (`10.60.0.5`).
+5. AdBlock host (`dns01`) is statically mapped to the resolver IP.
 
 ## 8. Reverse Proxy Notes
-Repo-verified reverse proxy context:
-- Caddy config template defines many internal service hostnames under `{{CADDY_BASE_DOMAIN}}`.
-- Office-hosted reverse proxy target is consistently represented as `10.10.0.5` in pfSense DNS runbooks.
-- Caddy upstream targets include:
-  - `nas` -> `10.10.0.24:5000`
-  - `proxmox` -> `10.10.0.10:8006`
-  - `pbs` -> `10.10.0.8:8007`
-  - multiple media/app services on office subnet hosts
-
-Important domain caveat:
-- Repo templates/defaults use `home.example.com`.
-- `home.brianpooe.com` was not found in this repository.
+- Reverse proxy host is represented as `10.10.0.5` in public-safe docs.
+- `CADDY_HOST` alias is used by pfSense policy and DNS redirect exception logic.
+- Family and Media have explicit TCP allow rules to reverse proxy destination.
+- Published hostnames remain under `home.example.com` in repository templates.
 
 ## 9. Assumptions / Unknowns
-1. Physical hardware chain is treated as authoritative from user brief because repo does not include hardware inventory files for ONT/switch/AP/endpoint cabling.
-2. No switch port assignments, trunk/access mode per port, or VLAN tagging maps were found.
-3. No SSIDs, Wi-Fi security settings, or AP radio policy details were found.
-4. No definitive production base domain value was found (only template default `home.example.com`).
-5. pfSense runbook docs indicate current-state DNS NAT redirect is LAN-only in one analysis, while other runbooks define desired all-VLAN forced DNS; active state at this moment is not directly verifiable from this repo alone.
-6. IPs for Mac mini, Intel NUC, DS920+, and most endpoints are not directly verified in repo.
-7. Firewall rule IDs/order numbers are not provided in repo; only intent and runbook-level policy are documented.
+1. TL-SG108 is unmanaged; no dedicated management IP is visible in pfSense DHCP static maps (you indicated this was removed accidentally and will be added back).
+2. Downstream switch port-by-port access/trunk assignments are intentionally abstracted in public docs.
+3. SSID names, WLAN security settings, and AP radio policy are not stored in this repo.
+4. It is not confirmed whether `drawio` service (`... .9:8080` in template form) is currently active in production.
+5. AdBlock VLAN is intentionally broad right now; future hardening boundaries are a policy decision.
 
 ## 10. Validation Checklist
-Use this quick checklist to close remaining gaps:
-
-1. Confirm production domain: is internal DNS/reverse proxy domain still `home.example.com`, or another value (for example `home.brianpooe.com`)?
-2. Confirm active pfSense state: are forced DNS NAT rules currently active on LAN only, or LAN + Office/Family/IoT/Media/Guest?
-3. Confirm reverse proxy host placement: is Caddy currently at `10.10.0.5` on Office VLAN?
-4. Confirm DNS resolver host/IP: is Raspberry Pi 4 (2GB) currently serving DNS at `10.60.0.5`?
-5. Confirm whether IoT and Guest are strict self-only or self-only plus DNS exception to AdBlock VLAN.
-6. Confirm switch uplink/trunk and access-port mappings (USW Lite 8 PoE, TL-SG108, TL-SG1016DE).
-7. Confirm endpoint IPs/hostnames for Mac mini, Intel NUC, Synology DS920+ for diagram annotations.
-8. Confirm whether any direct LAN segment clients/services should be drawn explicitly beyond VLAN interfaces.
+1. Confirm your preferred AdBlock hardening level: `Current`, `Moderate`, or `Strict`.
+2. Confirm when TL-SG108 management IP/static map is re-added so docs can include it.
+3. Confirm whether Technitium upstream mode is `Forward-to-pfSense` or `Direct recursion` (drives OPT7 Rule 1 vs Rule 2).
+4. Confirm whether `drawio` upstream at Office `.9:8080` should stay in templates (diagram currently omits service nodes by request).

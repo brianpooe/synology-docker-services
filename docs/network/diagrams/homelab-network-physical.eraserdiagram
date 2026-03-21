@@ -1,0 +1,75 @@
+cloud-architecture-diagram
+title Homelab Physical Topology (Current)
+direction right
+
+WAN_Internet_Edge [color: red, icon: globe] {
+  Internet [icon: globe]
+  Calix_ONT [icon: server, label: "Calix GigaPoint 803G ONT"]
+}
+
+Routing_Core [color: blue, icon: shield] {
+  Netgate1100 [icon: server, label: "Netgate 1100 pfSense"]
+}
+
+Core_Services [color: red, icon: server] {
+  RaspberryPi4 [icon: server, label: "Raspberry Pi 4 (2GB) Technitium DNS/AdBlock"]
+}
+
+Distribution [color: green, icon: server] {
+  USW_Lite8PoE [icon: server, label: "UB-USW-LITE-8-POE"]
+}
+
+Media_Segment [color: orange, icon: monitor] {
+  TLSG108 [icon: server, label: "TL-SG108"]
+  TV [icon: monitor]
+  AppleTV_Console [icon: play, label: "Apple TV / Console"]
+}
+
+WiFi_Client_Zones [color: green, icon: wifi] {
+  UniFiU6LR [icon: wifi, label: "UniFi U6-LR Managed AP"]
+  Family [icon: wifi]
+  Guest [icon: wifi]
+  IoT [icon: wifi]
+}
+
+Office_Homelab_Devices [color: blue, icon: server] {
+  TLSG1016DE [icon: server, label: "TL-SG1016DE"]
+  IntelNUC [icon: server, label: "Intel NUC"]
+  SynologyDS920 [icon: server, label: "Synology DS920+"]
+  CaddyHost [icon: server, label: "Office Reverse Proxy (Caddy Host)"]
+  MacMini [icon: monitor, label: "Mac mini"]
+  OtherOfficeInfra [icon: server, label: "Other Office Infra"]
+}
+
+// Wired and wireless relationships
+Internet > Calix_ONT
+Calix_ONT > Netgate1100
+Netgate1100 > USW_Lite8PoE: LAN/VLAN trunk
+USW_Lite8PoE > UniFiU6LR: trunk + PoE
+USW_Lite8PoE > TLSG108: media uplink
+USW_Lite8PoE > TLSG1016DE: office uplink
+USW_Lite8PoE > RaspberryPi4: DNS host link
+USW_Lite8PoE > MacMini: LAN endpoint
+
+TLSG108 > TV
+TLSG108 > AppleTV_Console
+
+UniFiU6LR --> Family: wireless
+UniFiU6LR --> Guest: wireless
+UniFiU6LR --> IoT: wireless
+
+TLSG1016DE > IntelNUC
+TLSG1016DE > SynologyDS920
+TLSG1016DE > CaddyHost
+TLSG1016DE > OtherOfficeInfra
+
+// Logical resolver path (not a direct cable)
+Netgate1100 --> RaspberryPi4: DNS query path
+
+legend [position: bottom-left] {
+  [connection: >, label: Wired Ethernet]
+  [connection: -->, label: Wireless or logical path]
+  [color: red, label: Internet edge / DNS critical path]
+  [color: blue, label: Routing and office zones]
+  [color: green, label: Distribution and access zones]
+}
