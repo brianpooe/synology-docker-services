@@ -31,7 +31,7 @@ High-level flow:
 | Calix GigaPoint 803G GPON ONT | ISP optical termination | From user topology (not repo-verified) |
 | Netgate 1100 (pfSense) | Router/firewall, VLAN gateway, policy enforcement | VLAN names/CIDRs and policy behavior are documented in `dns/*` runbooks |
 | Ubiquiti UB-USW-LITE-8-POE | Core aggregation switch after pfSense | From user topology (not repo-verified) |
-| UniFi U6 LR AP | Wi-Fi AP carrying multiple VLANs | From user topology (not repo-verified) |
+| UniFi U6 LR AP | Managed Wi-Fi AP distributing VLAN-tagged SSIDs/traffic | From user topology (not repo-verified) |
 | TP-Link TL-SG108 (unmanaged) | Media switch segment | From user topology (not repo-verified) |
 | TP-Link TL-SG1016DE (managed) | Office/homelab switch segment | From user topology (not repo-verified) |
 | Raspberry Pi 4 Model B (2GB) | DNS/ad-block host in AdBlock VLAN | Pi 4 2GB DNS deployment documented in `dns/technitium-deployment.md`; resolver IP `10.60.0.5` documented in `dns/*` |
@@ -50,7 +50,7 @@ Physical path (left-to-right):
 3. Netgate 1100 running pfSense
 4. Ubiquiti UB-USW-LITE-8-POE (core switch)
 5. Downstream from core switch:
-   - UniFi U6 LR (PoE)
+   - UniFi U6 LR managed AP (PoE, VLAN distribution)
    - TP-Link TL-SG108 (media segment)
    - TP-Link TL-SG1016DE (office/homelab segment)
    - Mac mini
