@@ -17,12 +17,14 @@ High-level design:
 - Technitium DNS/ad-blocking is centralized on AdBlock VLAN.
 - Office-hosted reverse proxy is the controlled cross-VLAN destination for Family/Media.
 
-Diagram source files (Eraser diagram-as-code, replacing Draw.io as editable source):
+Diagram source files (Eraser diagram-as-code):
 - `docs/network/diagrams/homelab-network-physical.eraserdiagram`
 - `docs/network/diagrams/homelab-network-logical.eraserdiagram`
 
-Legacy retained for now:
-- `docs/network/diagrams/homelab-network.drawio`
+Rendered exports:
+- `docs/network/diagrams/homelab-network-logical.svg`
+- `docs/network/diagrams/homelab-network-physical.svg`
+- `docs/network/diagrams/homelab-network-combined.svg`
 
 ## Evidence Table
 | Fact | Value (public-safe) | Source file(s) | Confidence |
@@ -163,11 +165,9 @@ Current-state flow (sanitized):
 1. TL-SG108 is unmanaged; no dedicated management IP is visible in pfSense DHCP static maps (you indicated this was removed accidentally and will be added back).
 2. Downstream switch port-by-port access/trunk assignments are intentionally abstracted in public docs.
 3. SSID names, WLAN security settings, and AP radio policy are not stored in this repo.
-4. It is not confirmed whether `drawio` service (`... .9:8080` in template form) is currently active in production.
-5. AdBlock VLAN is intentionally broad right now; future hardening boundaries are a policy decision.
+4. AdBlock VLAN is intentionally broad right now; future hardening boundaries are a policy decision.
 
 ## 10. Validation Checklist
 1. Confirm your preferred AdBlock hardening level: `Current`, `Moderate`, or `Strict`.
 2. Confirm when TL-SG108 management IP/static map is re-added so docs can include it.
 3. Confirm whether Technitium upstream mode is `Forward-to-pfSense` or `Direct recursion` (drives OPT7 Rule 1 vs Rule 2).
-4. Confirm whether `drawio` upstream at Office `.9:8080` should stay in templates (diagram currently omits service nodes by request).
