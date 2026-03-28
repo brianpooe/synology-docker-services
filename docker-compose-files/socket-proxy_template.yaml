@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Synology DS920+ Compatible Configuration
 # Note: CPU limits removed due to kernel lacking CPU CFS scheduler support
 # Memory limits are supported and configured below

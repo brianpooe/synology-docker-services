@@ -353,7 +353,8 @@ docker-compose -f docker-compose.arr-stack.yml stop
 ### Detailed Guides
 - **[Recyclarr Setup](docs/RECYCLARR.md)** - Quality profile configuration
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Improvements Guide](docs/IMPROVEMENTS.md)** - What changed and why
+- **[Technitium Deployment](dns/technitium-deployment.md)** - DNS/ad-block server setup
+- **[Network Architecture](docs/network/homelab-network.md)** - VLAN layout and access policy
 
 ### External Resources
 - **[TRaSH Guides](https://trash-guides.info/)** - File structure and quality profiles
@@ -428,7 +429,7 @@ If upgrading from previous configurations:
    docker-compose -f docker-compose.arr-stack.yml up -d
    ```
 
-**Migration guide:** [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md)
+**Note:** Review generated compose files with `docker-compose -f <file> config` before deploying.
 
 ---
 

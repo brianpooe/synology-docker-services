@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Synology DS920+ Compatible Configuration
 # Note: CPU limits removed due to kernel lacking CPU CFS scheduler support
 # Memory limits are supported and configured below
@@ -303,7 +301,7 @@ services:
         max-size: "{{DOCKERLOGGING_MAXSIZE}}"
 
   bazarr:
-    image: ghcr.io/hotio/bazarr:nightly
+    image: ghcr.io/hotio/bazarr:latest
     container_name: bazarr
     restart: unless-stopped
     labels:
@@ -380,7 +378,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3G # Reduced from 4G; 3G is plenty for a 128MB DB cache + OS overhead [cite: 73, 121]
+          memory: 3G
         reservations:
           memory: 1G
     security_opt:
@@ -409,7 +407,7 @@ services:
       LOG_LEVEL: info
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - {{DOCKERCONFDIR}}/jellyseerr:/app/config
+      - {{DOCKERCONFDIR}}/seerr:/app/config
       - {{DOCKERSTORAGEDIR}}/media:/data/media
     depends_on:
       emby:
@@ -508,6 +506,8 @@ services:
           memory: 512M
         reservations:
           memory: 128M
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: json-file
       options:

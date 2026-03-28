@@ -5,7 +5,6 @@ This guide deploys Technitium DNS using:
 
 Compatibility note:
 - 2GB RAM Pi 4 is supported with the included memory cap in the compose template.
-- This template hardcodes `max-file=3` and `max-size=10m` for Pi-local use.
 
 ## 1) Prepare env values
 Update your `.env` with these required values:
@@ -52,8 +51,26 @@ Then configure:
    - Target: `caddy.home.example.com`
 4. Add allowlist equivalent for `www.googleadservices.com`.
 
-Reference details:
-- [technitium-cutover-checklist.md](./technitium-cutover-checklist.md)
+### Why wildcard CNAME (recommended)
+
+Use a single wildcard `CNAME` (`*.home.example.com -> caddy.home.example.com`) instead of 26+ explicit CNAME records. This removes the need to add a new DNS record every time a new proxied service is added.
+
+Caveats:
+- Wildcard does not cover the zone apex (`home.example.com`) itself.
+- Explicit records override wildcard — keep special cases as explicit entries.
+- A typo hostname still resolves to Caddy (which returns 404/cert mismatch until configured there).
+- Keep host-matching and auth policy in Caddy, since the DNS wildcard is broad by design.
+
+Technitium UI tip: when editing records inside zone `home.example.com`, use relative names (`caddy`, `*`) rather than full FQDN labels.
+
+DNS + proxy flow with wildcard:
+```mermaid
+flowchart LR
+    A["Client queries any host\n*.home.example.com"] --> B["Technitium wildcard CNAME"]
+    B --> C["caddy.home.example.com"]
+    C --> D["A record 10.10.0.5"]
+    D --> E["Caddy routes by Host header\nto matching app"]
+```
 
 ## 5) pfSense integration
 Keep DNS server IP as `10.60.0.5` to avoid changing existing DHCP and firewall dependencies.

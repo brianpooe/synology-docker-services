@@ -39,11 +39,14 @@ services:
       # Optional encrypted DNS listeners (enable only if you intend to use them)
       # - "{{DNS_BIND_IP:-0.0.0.0}}:853:853/tcp"  # DoT
       # - "{{DNS_BIND_IP:-0.0.0.0}}:443:443/tcp"  # DoH
-    mem_limit: "{{TECHNITIUM_MEM_LIMIT:-512m}}"
+    deploy:
+      resources:
+        limits:
+          memory: "{{TECHNITIUM_MEM_LIMIT:-512m}}"
     security_opt:
       - no-new-privileges:true
     logging:
       driver: json-file
       options:
-        max-file: "3"
-        max-size: "10m"
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
