@@ -171,3 +171,7 @@ Current-state flow (sanitized):
 1. Confirm your preferred AdBlock hardening level: `Current`, `Moderate`, or `Strict`.
 2. Confirm when TL-SG108 management IP/static map is re-added so docs can include it.
 3. Confirm whether Technitium upstream mode is `Forward-to-pfSense` or `Direct recursion` (drives OPT7 Rule 1 vs Rule 2).
+
+## 11. Rackmount Migration Guide
+The full UDM Pro + USW-Aggregation + UNAS Pro migration guide (including gotchas and MermaidJS topology) is maintained in:
+- `docs/network/homelab-network-unifi-rackmount-migration.md`
