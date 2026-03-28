@@ -71,10 +71,15 @@ tplink16de.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     reverse_proxy {{CADDY_LAN_PREFIX:-10.1.0}}.8
 }
 
-## 2) DNS services
+zigbee.{{CADDY_BASE_DOMAIN:-home.example.com}} {
+    import common
+    reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.5
+}
+
+## 2) AdBlock services
 dns01.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy {{CADDY_DNS_PREFIX:-10.60.0}}.5:5380
+    reverse_proxy {{CADDY_ADBLOCK_PREFIX:-10.60.0}}.5:5380
 }
 
 ## 3) Office services
