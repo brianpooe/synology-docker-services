@@ -221,6 +221,7 @@ fabric.properties
 .idea/runConfigurations
 .env
 caddy/Caddyfile
+docker-compose.*.yml
 
 docker-compose-files/**/*
 !docker-compose-files/**/
