@@ -1,0 +1,33 @@
+# Zigbee2MQTT configuration for SMLIGHT SLZB-06U (PoE+ / network mode)
+# Place this file at: {{DOCKERCONFDIR}}/zigbee2mqtt/configuration.yaml
+
+homeassistant:
+  enabled: true              # Enable Home Assistant discovery via MQTT (v2.x block form)
+
+permit_join: false           # Set to true temporarily to pair new devices, then back to false
+
+mqtt:
+  base_topic: zigbee2mqtt
+  # mqtt container is on the same ha-network bridge — use container name
+  server: mqtt://mqtt:1883
+  # If you enable MQTT auth (see mosquitto.conf), uncomment:
+  # user: {{MQTT_USER}}
+  # password: {{MQTT_PASSWORD}}
+
+serial:
+  # SLZB-06U connects over the network via TCP (PoE+ mode — no USB needed)
+  # Assign a static IP or DHCP reservation to the coordinator for a stable address
+  # Default coordinator port is 6638
+  port: tcp://{{SLZB06_HOST}}:6638
+  adapter: ember             # Silicon Labs EFR32 (Ember/EZSP protocol)
+                             # 'ember' is the correct name in zigbee2mqtt 2.x (was 'ezsp' in 1.x)
+
+frontend:
+  port: 8080
+  host: 0.0.0.0
+
+advanced:
+  log_level: info            # Options: debug, info, warn, error
+  pan_id: GENERATE           # Auto-generated on first start — do not change after pairing devices
+  network_key: GENERATE      # Auto-generated on first start — do not change after pairing devices
+  # channel: 11              # Zigbee channel (11-26). Avoid 15/20/25 — overlap with WiFi ch 1/6/11

@@ -1,0 +1,136 @@
+# Home Assistant Stack — Linux (dedicated mini PC)
+#
+# All services share ha-network so they can reach each other by container name:
+#   HA  → mqtt:1883, zigbee2mqtt:8080
+#   z2m → mqtt:1883
+#
+# NOTE: Bridge networking means HA cannot use mDNS/SSDP/Bluetooth for local device
+# auto-discovery (Chromecast, HomeKit, Matter, etc.). For those integrations you will
+# need to configure devices by IP address manually, or run HA with network_mode: host
+# (which breaks container-name routing — you'd then use localhost for MQTT/Z2M instead).
+#
+# Zigbee coordinator: SMLIGHT SLZB-06U over PoE+ (network-based, Silicon Labs EFR32 / Ember)
+#   The coordinator connects via TCP — no USB passthrough needed.
+#   Set SLZB06_HOST in your .env to the coordinator's static IP.
+#
+# Before first run:
+#   - Copy homeassistant/config/mosquitto.conf              → ./appdata/mqtt/config/mosquitto.conf
+#   - Copy homeassistant/config/zigbee2mqtt_configuration.yaml → ./appdata/zigbee2mqtt/configuration.yaml
+#   - Set SLZB06_HOST in your .env to the SLZB-06U IP address
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    networks:
+      - ha-network
+    ports:
+      - "8123:8123"
+    environment:
+      TZ: {{TZ}}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./appdata/homeassistant:/config
+    depends_on:
+      mqtt:
+        condition: service_healthy
+      zigbee2mqtt:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fSs http://localhost:8123/manifest.json || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: mqtt
+    restart: unless-stopped
+    networks:
+      - ha-network
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./appdata/mqtt/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./appdata/mqtt/data:/mosquitto/data
+      - ./appdata/mqtt/log:/mosquitto/log
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_pub -h localhost -t healthcheck -m ping -q 0 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 32M
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt:latest
+    container_name: zigbee2mqtt
+    restart: unless-stopped
+    networks:
+      - ha-network
+    ports:
+      - "8080:8080"
+    environment:
+      TZ: {{TZ}}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./appdata/zigbee2mqtt:/app/data
+    depends_on:
+      mqtt:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-file: "{{DOCKERLOGGING_MAXFILE}}"
+        max-size: "{{DOCKERLOGGING_MAXSIZE}}"
+
+networks:
+  ha-network:
+    driver: bridge
+    name: ha_network

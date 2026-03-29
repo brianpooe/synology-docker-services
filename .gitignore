@@ -225,5 +225,7 @@ caddy/Caddyfile
 docker-compose-files/**/*
 !docker-compose-files/**/
 !docker-compose-files/**/*_template.*
+!docker-compose-files/**/template.*
+!docker-compose-files/**/config/**
 
 # End of https://www.toptal.com/developers/gitignore/api/webstorm+all,webstorm,linux,macos
