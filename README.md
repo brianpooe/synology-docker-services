@@ -109,8 +109,9 @@ Home Assistant with MQTT broker and Zigbee2MQTT for local smart home control.
 - ✅ Health checks and dependency ordering
 
 **Config templates** (copy and fill in before first run):
-- `homeassistant/config/mosquitto.conf` → `$DOCKERCONFDIR/mqtt/config/mosquitto.conf`
-- `homeassistant/config/zigbee2mqtt_configuration.yaml` → `$DOCKERCONFDIR/zigbee2mqtt/configuration.yaml`
+- `homeassistant/config/mosquitto.conf` → `./appdata/mqtt/config/mosquitto.conf`
+- `homeassistant/config/zigbee2mqtt_configuration.yaml` → `./appdata/zigbee2mqtt/configuration.yaml`
+- `homeassistant/config/ha_configuration.yaml` → `./appdata/homeassistant/configuration.yaml` (via `substitute_env.sh` — sets Caddy trusted proxy)
 
 ---
 
@@ -160,10 +161,10 @@ Each stack lives in its own folder alongside any config files it needs. The work
 # 1. Generate the compose file from the template
 ./substitute_env.sh docker-compose-files/<stack>/template.yaml docker-compose.<stack>.yml
 
-# 2. (If the stack has config templates) copy and edit them onto the host
-cp docker-compose-files/<stack>/config/<file> $DOCKERCONFDIR/<service>/
-# or substitute variables into them
-./substitute_env.sh docker-compose-files/<stack>/config/<file> $DOCKERCONFDIR/<service>/<file>
+# 2. (If the stack has config templates) copy or substitute them into place
+cp docker-compose-files/<stack>/config/<file> ./appdata/<service>/
+# or substitute variables into them first
+./substitute_env.sh docker-compose-files/<stack>/config/<file> ./appdata/<service>/<file>
 
 # 3. Deploy
 docker-compose -f docker-compose.<stack>.yml up -d
@@ -193,7 +194,7 @@ docker-compose -f docker-compose.<stack>.yml up -d
 Edit `.env` file with your settings:
 
 ```bash
-# System Settings
+# arr-stack only
 DOCKERCONFDIR=/volume1/docker/appdata
 DOCKERSTORAGEDIR=/volume1/data
 PUID=1026

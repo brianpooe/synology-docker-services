@@ -157,6 +157,22 @@ sonarr.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     reverse_proxy {{CADDY_OFFICE_PREFIX:-10.10.0}}.24:8989
 }
 
+#### Home Automation Stack
+# Requires in HA configuration.yaml:
+#   http:
+#     use_x_forwarded_for: true
+#     trusted_proxies:
+#       - <caddy-host-ip>
+ha.{{CADDY_BASE_DOMAIN:-home.example.com}} {
+    import common
+    reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.X:8123
+}
+
+z2m.{{CADDY_BASE_DOMAIN:-home.example.com}} {
+    import common
+    reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.X:8080
+}
+
 #### Proxmox Apps
 bento-pdf.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
