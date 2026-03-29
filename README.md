@@ -1,6 +1,6 @@
 # Synology Docker Services
 
-Production-ready Docker Compose templates for Synology NAS, featuring security best practices, resource management, and comprehensive health monitoring.
+Docker Compose templates for home lab services, featuring security best practices, resource management, and comprehensive health monitoring.
 
 ## 🚀 Quick Start
 
@@ -14,11 +14,11 @@ cp .env.sample .env
 nano .env  # Fill in your configuration
 
 # 3. Generate Docker Compose files
-./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
-./substitute_env.sh docker-compose-files/postgres_template.yaml docker-compose.postgres.yml
-./substitute_env.sh docker-compose-files/vault_template.yaml docker-compose.vault.yml
-./substitute_env.sh docker-compose-files/socket-proxy_template.yaml docker-compose.beszel-proxy.yml
-./substitute_env.sh docker-compose-files/beszel-agent_template.yaml docker-compose.beszel-agent.yml
+./substitute_env.sh docker-compose-files/arr-stack/template.yaml docker-compose.arr-stack.yml
+./substitute_env.sh docker-compose-files/postgres/template.yaml docker-compose.postgres.yml
+./substitute_env.sh docker-compose-files/vault/template.yaml docker-compose.vault.yml
+./substitute_env.sh docker-compose-files/socket-proxy/template.yaml docker-compose.beszel-proxy.yml
+./substitute_env.sh docker-compose-files/beszel-agent/template.yaml docker-compose.beszel-agent.yml
 ./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 
 # 4. Deploy
@@ -33,7 +33,7 @@ docker-compose -f docker-compose.beszel-agent.yml up -d
 
 ## 📦 Available Stacks
 
-### 🎬 Media Stack (`arr-stack_template.yaml`)
+### 🎬 Media Stack (`arr-stack/`)
 Complete automated media management with VPN protection and security hardening.
 
 **Services:**
@@ -55,7 +55,7 @@ Complete automated media management with VPN protection and security hardening.
 - ✅ Resource limits to prevent system exhaustion
 - ✅ Security hardening (no-new-privileges, internal networks)
 
-### 📈 Monitoring Stack (`socket-proxy_template.yaml` + `beszel-agent_template.yaml`)
+### 📈 Monitoring Stack (`socket-proxy/` + `beszel-agent/`)
 Host-level telemetry stack for Beszel Hub with restricted Docker API access.
 
 **Services:**
@@ -68,7 +68,7 @@ Host-level telemetry stack for Beszel Hub with restricted Docker API access.
 - ✅ Host networking for interface metrics visibility
 - ✅ Persistent state volume and constrained memory limit
 
-### 🗄️ Database Stack (`postgres_template.yaml`)
+### 🗄️ Database Stack (`postgres/`)
 PostgreSQL with pgAdmin web interface.
 
 **Services:**
@@ -81,7 +81,7 @@ PostgreSQL with pgAdmin web interface.
 - ✅ Resource limits configured
 - ✅ Persistent data volumes
 
-### 🔐 Secrets Stack (`vault_template.yaml`)
+### 🔐 Secrets Stack (`vault/`)
 HashiCorp Vault for secrets management.
 
 **Services:**
@@ -93,6 +93,25 @@ HashiCorp Vault for secrets management.
 - ✅ IPC_LOCK capability for security
 - ✅ Health monitoring
 
+### 🏠 Home Automation Stack (`homeassistant/`)
+Home Assistant with MQTT broker and Zigbee2MQTT for local smart home control.
+
+**Services:**
+- **Home Assistant** - Home automation platform
+- **Eclipse Mosquitto** - MQTT broker (v2.x)
+- **Zigbee2MQTT** - Zigbee coordinator bridge
+
+**Features:**
+- ✅ All services on a shared bridge network (container-name routing)
+- ✅ SMLIGHT SLZB-06U over PoE+ (TCP socket, no USB passthrough needed)
+- ✅ Mosquitto 2.x with persistence and WebSocket listener
+- ✅ Zigbee2MQTT 2.x with Home Assistant MQTT discovery
+- ✅ Health checks and dependency ordering
+
+**Config templates** (copy and fill in before first run):
+- `homeassistant/config/mosquitto.conf` → `$DOCKERCONFDIR/mqtt/config/mosquitto.conf`
+- `homeassistant/config/zigbee2mqtt_configuration.yaml` → `$DOCKERCONFDIR/zigbee2mqtt/configuration.yaml`
+
 ---
 
 ## 🔒 Security Features
@@ -103,6 +122,52 @@ HashiCorp Vault for secrets management.
 - **Internal networks** for service isolation
 - **Resource limits** to prevent DoS
 - **Health checks** for reliability
+
+---
+
+## 🗂️ Repository Structure
+
+```
+docker-compose-files/
+  arr-stack/
+    template.yaml             # Compose template
+    config/
+      recyclarr_template.yml  # Recyclarr app config template
+  beszel-agent/
+    template.yaml
+  gramps-web/
+    template.yaml
+    config/
+      config_template.cfg
+  homeassistant/
+    template.yaml
+    config/
+      mosquitto.conf                    # Mosquitto 2.x config (copy to host before first run)
+      zigbee2mqtt_configuration.yaml    # Zigbee2MQTT config template
+  postgres/
+    template.yaml
+  socket-proxy/
+    template.yaml
+  technitium/
+    template.yaml
+  vault/
+    template.yaml
+```
+
+Each stack lives in its own folder alongside any config files it needs. The workflow is always the same:
+
+```bash
+# 1. Generate the compose file from the template
+./substitute_env.sh docker-compose-files/<stack>/template.yaml docker-compose.<stack>.yml
+
+# 2. (If the stack has config templates) copy and edit them onto the host
+cp docker-compose-files/<stack>/config/<file> $DOCKERCONFDIR/<service>/
+# or substitute variables into them
+./substitute_env.sh docker-compose-files/<stack>/config/<file> $DOCKERCONFDIR/<service>/<file>
+
+# 3. Deploy
+docker-compose -f docker-compose.<stack>.yml up -d
+```
 
 ---
 
@@ -195,7 +260,7 @@ Copy and configure Recyclarr for quality profile management:
 
 ```bash
 # Generate config from template
-./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
+./substitute_env.sh docker-compose-files/arr-stack/config/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
 
 # Edit with your API keys
 nano /volume1/docker/appdata/recyclarr/recyclarr.yml
@@ -234,11 +299,12 @@ sudo chown -R 5050:5050 /volume1/docker/appdata/pgadmin
 
 ### Option 1: Deploy All Stacks
 ```bash
-./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
-./substitute_env.sh docker-compose-files/postgres_template.yaml docker-compose.postgres.yml
-./substitute_env.sh docker-compose-files/vault_template.yaml docker-compose.vault.yml
-./substitute_env.sh docker-compose-files/socket-proxy_template.yaml docker-compose.beszel-proxy.yml
-./substitute_env.sh docker-compose-files/beszel-agent_template.yaml docker-compose.beszel-agent.yml
+./substitute_env.sh docker-compose-files/arr-stack/template.yaml        docker-compose.arr-stack.yml
+./substitute_env.sh docker-compose-files/postgres/template.yaml         docker-compose.postgres.yml
+./substitute_env.sh docker-compose-files/vault/template.yaml            docker-compose.vault.yml
+./substitute_env.sh docker-compose-files/socket-proxy/template.yaml     docker-compose.beszel-proxy.yml
+./substitute_env.sh docker-compose-files/beszel-agent/template.yaml     docker-compose.beszel-agent.yml
+./substitute_env.sh docker-compose-files/homeassistant/template.yaml    docker-compose.homeassistant.yml
 ./substitute_env.sh caddy/Caddyfile_template caddy/Caddyfile .env
 
 docker-compose -f docker-compose.arr-stack.yml up -d
@@ -246,13 +312,18 @@ docker-compose -f docker-compose.postgres.yml up -d
 docker-compose -f docker-compose.vault.yml up -d
 docker-compose -f docker-compose.beszel-proxy.yml up -d
 docker-compose -f docker-compose.beszel-agent.yml up -d
+docker-compose -f docker-compose.homeassistant.yml up -d
 ```
 
 ### Option 2: Deploy Specific Stack
 ```bash
 # Media stack only
-./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
+./substitute_env.sh docker-compose-files/arr-stack/template.yaml docker-compose.arr-stack.yml
 docker-compose -f docker-compose.arr-stack.yml up -d
+
+# Home Assistant stack only
+./substitute_env.sh docker-compose-files/homeassistant/template.yaml docker-compose.homeassistant.yml
+docker-compose -f docker-compose.homeassistant.yml up -d
 
 # Verify deployment
 docker ps
@@ -417,7 +488,7 @@ If upgrading from previous configurations:
 
 2. **Regenerate compose files:**
    ```bash
-   ./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
+   ./substitute_env.sh docker-compose-files/arr-stack/template.yaml docker-compose.arr-stack.yml
    ```
 
 3. **Review changes:**

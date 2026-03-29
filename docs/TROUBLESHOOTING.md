@@ -23,7 +23,7 @@ Symptoms:
 Fix:
 
 ```bash
-./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
+./substitute_env.sh docker-compose-files/arr-stack/template.yaml docker-compose.arr-stack.yml
 ```
 
 The script prints any unresolved placeholders. Add missing keys to `.env` (or provide defaults in templates).
@@ -45,7 +45,7 @@ radarr:
 Generate your file from this repo template:
 
 ```bash
-./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
+./substitute_env.sh docker-compose-files/arr-stack/config/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
 ```
 
 ### 2b. Recyclarr errors (`Unable to find include template ...`)
@@ -64,10 +64,10 @@ Fix (v8 path used by this repository):
 
 ```bash
 # 1) Regenerate recyclarr config from the v8 template
-./substitute_env.sh docker-compose-files/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
+./substitute_env.sh docker-compose-files/arr-stack/config/recyclarr_template.yml /volume1/docker/appdata/recyclarr/recyclarr.yml
 
 # 2) Regenerate compose and recreate recyclarr (v8.4.0 pin)
-./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml
+./substitute_env.sh docker-compose-files/arr-stack/template.yaml docker-compose.arr-stack.yml
 docker-compose -f docker-compose.arr-stack.yml pull recyclarr
 docker-compose -f docker-compose.arr-stack.yml up -d recyclarr
 ```
@@ -145,7 +145,7 @@ Fix:
 # network_mode: "container:gluetun"
 
 # Re-render compose and recreate the pair
-./substitute_env.sh docker-compose-files/arr-stack_template.yaml docker-compose.arr-stack.yml .env
+./substitute_env.sh docker-compose-files/arr-stack/template.yaml docker-compose.arr-stack.yml .env
 docker-compose -f docker-compose.arr-stack.yml up -d --force-recreate gluetun qbittorrent
 ```
 
