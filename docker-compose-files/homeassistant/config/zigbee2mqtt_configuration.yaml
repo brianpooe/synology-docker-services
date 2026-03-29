@@ -1,5 +1,5 @@
 # Zigbee2MQTT configuration for SMLIGHT SLZB-06U (PoE+ / network mode)
-# Place this file at: {{DOCKERCONFDIR}}/zigbee2mqtt/configuration.yaml
+# Place this file at: ./appdata/zigbee2mqtt/configuration.yaml
 
 homeassistant:
   enabled: true              # Enable Home Assistant discovery via MQTT (v2.x block form)

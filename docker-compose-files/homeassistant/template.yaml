@@ -14,9 +14,10 @@
 #   Set SLZB06_HOST in your .env to the coordinator's static IP.
 #
 # Before first run:
-#   - Copy homeassistant/config/mosquitto.conf              → ./appdata/mqtt/config/mosquitto.conf
+#   - Copy homeassistant/config/mosquitto.conf                 → ./appdata/mqtt/config/mosquitto.conf
 #   - Copy homeassistant/config/zigbee2mqtt_configuration.yaml → ./appdata/zigbee2mqtt/configuration.yaml
-#   - Set SLZB06_HOST in your .env to the SLZB-06U IP address
+#   - substitute_env.sh homeassistant/config/ha_configuration.yaml → ./appdata/homeassistant/configuration.yaml
+#   - Set SLZB06_HOST in your .env
 
 services:
   homeassistant:

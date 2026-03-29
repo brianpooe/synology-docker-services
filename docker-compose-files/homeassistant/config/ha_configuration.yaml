@@ -1,0 +1,11 @@
+# Home Assistant configuration.yaml
+# Place this file at: ./appdata/homeassistant/configuration.yaml
+#
+# This is a minimal starting config. HA will auto-generate the rest on first start.
+
+# Required for Caddy reverse proxy — trusts X-Forwarded-For headers from Caddy.
+# Caddy is statically mapped at .5 on the Office VLAN.
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - {{CADDY_OFFICE_PREFIX:-10.10.0}}.5
