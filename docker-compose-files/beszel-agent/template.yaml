@@ -1,17 +1,8 @@
-version: '3.8'
-
-# Synology DS920+ Compatible Configuration
-# Note: CPU limits removed due to kernel lacking CPU CFS scheduler support
-# Memory limits are supported and configured below
-
 services:
   beszel-agent:
     image: henrygd/beszel-agent:{{BESZEL_AGENT_IMAGE_TAG:-latest}}
     container_name: beszel-agent
     restart: unless-stopped
-    labels:
-      - "com.synology.stack=monitoring"
-      - "com.synology.service=beszel-agent"
     # Beszel recommends host mode for host network interface stats.
     network_mode: host
     environment:

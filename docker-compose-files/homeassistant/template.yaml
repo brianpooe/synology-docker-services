@@ -75,7 +75,7 @@ services:
       - ./appdata/mqtt/data:/mosquitto/data
       - ./appdata/mqtt/log:/mosquitto/log
     healthcheck:
-      test: ["CMD-SHELL", "mosquitto_pub -h localhost -t healthcheck -m ping -q 0 || exit 1"]
+      test: ["CMD-SHELL", "mosquitto_pub -h mqtt -t healthcheck -m ping -q 0 || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -112,7 +112,7 @@ services:
       mqtt:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/ || exit 1"]
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://zigbee2mqtt:8080/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
