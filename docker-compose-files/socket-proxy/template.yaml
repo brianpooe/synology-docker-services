@@ -1,15 +1,8 @@
-# Synology DS920+ Compatible Configuration
-# Note: CPU limits removed due to kernel lacking CPU CFS scheduler support
-# Memory limits are supported and configured below
-
 services:
   beszel-proxy:
     image: lscr.io/linuxserver/socket-proxy:{{BESZEL_SOCKET_PROXY_IMAGE_TAG:-latest}}
     container_name: beszel-proxy
     restart: unless-stopped
-    labels:
-      - "com.synology.stack=monitoring"
-      - "com.synology.service=beszel-socket-proxy"
     ports:
       - "{{BESZEL_SOCKET_PROXY_BIND_IP:-127.0.0.1}}:{{BESZEL_SOCKET_PROXY_PORT:-2375}}:2375"
     environment:
