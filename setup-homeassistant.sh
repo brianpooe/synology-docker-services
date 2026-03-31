@@ -3,7 +3,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APPDATA="$(cd "$SCRIPT_DIR/.." && pwd)/appdata"
+PARENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+APPDATA="$PARENT_DIR/appdata"
 STACK_DIR="$SCRIPT_DIR/docker-compose-files/homeassistant"
 ENV_FILE="$SCRIPT_DIR/.env"
 
@@ -33,9 +34,9 @@ sudo "$SCRIPT_DIR/substitute_env.sh" \
 echo "==> Generating docker-compose.homeassistant.yml"
 "$SCRIPT_DIR/substitute_env.sh" \
   "$STACK_DIR/template.yaml" \
-  "$SCRIPT_DIR/docker-compose.homeassistant.yml" \
+  "$PARENT_DIR/docker-compose.homeassistant.yml" \
   "$ENV_FILE"
 
 echo ""
 echo "Done. To deploy:"
-echo "  docker compose -f docker-compose.homeassistant.yml up -d"
+echo "  docker compose -f $PARENT_DIR/docker-compose.homeassistant.yml up -d"
