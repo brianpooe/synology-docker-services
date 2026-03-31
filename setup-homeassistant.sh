@@ -13,11 +13,24 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 echo "==> Checking required .env variables"
 REQUIRED_VARS=(TZ SLZB06_HOST DOCKERLOGGING_MAXFILE DOCKERLOGGING_MAXSIZE)
 MISSING=()
-if [[ -f "$ENV_FILE" ]]; then
-  set -a; source "$ENV_FILE"; set +a
-fi
+
+get_env_value() {
+  local key="$1"
+  local line value
+  line=$(grep -E "^${key}=" "$ENV_FILE" 2>/dev/null | head -1) || true
+  value="${line#*=}"
+  # Strip surrounding quotes
+  if [[ "$value" =~ ^\"(.*)\"[[:space:]]*(#.*)?$ ]]; then
+    value="${BASH_REMATCH[1]}"
+  elif [[ "$value" =~ ^\'(.*)\'[[:space:]]*(#.*)?$ ]]; then
+    value="${BASH_REMATCH[1]}"
+  fi
+  printf '%s' "$value"
+}
+
 for var in "${REQUIRED_VARS[@]}"; do
-  if [[ -z "${!var:-}" ]]; then
+  value=$(get_env_value "$var")
+  if [[ -z "$value" ]]; then
     MISSING+=("$var")
   fi
 done
