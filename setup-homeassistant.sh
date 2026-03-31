@@ -7,6 +7,25 @@ PARENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 APPDATA="$PARENT_DIR/appdata"
 STACK_DIR="$SCRIPT_DIR/docker-compose-files/homeassistant"
 ENV_FILE="$SCRIPT_DIR/.env"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+echo "==> Checking required .env variables"
+REQUIRED_VARS=(TZ SLZB06_HOST DOCKERLOGGING_MAXFILE DOCKERLOGGING_MAXSIZE)
+MISSING=()
+if [[ -f "$ENV_FILE" ]]; then
+  set -a; source "$ENV_FILE"; set +a
+fi
+for var in "${REQUIRED_VARS[@]}"; do
+  if [[ -z "${!var:-}" ]]; then
+    MISSING+=("$var")
+  fi
+done
+if [[ ${#MISSING[@]} -gt 0 ]]; then
+  echo "Error: missing required variables in .env:"
+  for var in "${MISSING[@]}"; do echo "  - $var"; done
+  exit 1
+fi
 
 echo "==> Creating appdata directories at $APPDATA"
 sudo mkdir -p \
@@ -20,16 +39,18 @@ echo "==> Copying mosquitto.conf"
 sudo cp "$STACK_DIR/config/mosquitto.conf" "$APPDATA/mqtt/config/mosquitto.conf"
 
 echo "==> Substituting zigbee2mqtt configuration"
-sudo "$SCRIPT_DIR/substitute_env.sh" \
+"$SCRIPT_DIR/substitute_env.sh" \
   "$STACK_DIR/config/zigbee2mqtt_configuration.yaml" \
-  "$APPDATA/zigbee2mqtt/configuration.yaml" \
+  "$TMP_DIR/zigbee2mqtt_configuration.yaml" \
   "$ENV_FILE"
+sudo cp "$TMP_DIR/zigbee2mqtt_configuration.yaml" "$APPDATA/zigbee2mqtt/configuration.yaml"
 
 echo "==> Substituting Home Assistant configuration"
-sudo "$SCRIPT_DIR/substitute_env.sh" \
+"$SCRIPT_DIR/substitute_env.sh" \
   "$STACK_DIR/config/ha_configuration.yaml" \
-  "$APPDATA/homeassistant/configuration.yaml" \
+  "$TMP_DIR/ha_configuration.yaml" \
   "$ENV_FILE"
+sudo cp "$TMP_DIR/ha_configuration.yaml" "$APPDATA/homeassistant/configuration.yaml"
 
 echo "==> Generating docker-compose.homeassistant.yml"
 "$SCRIPT_DIR/substitute_env.sh" \
