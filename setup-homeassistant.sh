@@ -10,16 +10,12 @@ ENV_FILE="$SCRIPT_DIR/.env"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-echo "==> Checking required .env variables"
-REQUIRED_VARS=(TZ SLZB06_HOST DOCKERLOGGING_MAXFILE DOCKERLOGGING_MAXSIZE)
-MISSING=()
-
+# Parse a single value from the .env file safely (no sourcing)
 get_env_value() {
   local key="$1"
   local line value
   line=$(grep -E "^${key}=" "$ENV_FILE" 2>/dev/null | head -1) || true
   value="${line#*=}"
-  # Strip surrounding quotes
   if [[ "$value" =~ ^\"(.*)\"[[:space:]]*(#.*)?$ ]]; then
     value="${BASH_REMATCH[1]}"
   elif [[ "$value" =~ ^\'(.*)\'[[:space:]]*(#.*)?$ ]]; then
@@ -28,9 +24,11 @@ get_env_value() {
   printf '%s' "$value"
 }
 
+echo "==> Checking required .env variables"
+REQUIRED_VARS=(TZ SLZB06_HOST DOCKERLOGGING_MAXFILE DOCKERLOGGING_MAXSIZE)
+MISSING=()
 for var in "${REQUIRED_VARS[@]}"; do
-  value=$(get_env_value "$var")
-  if [[ -z "$value" ]]; then
+  if [[ -z "$(get_env_value "$var")" ]]; then
     MISSING+=("$var")
   fi
 done
@@ -39,6 +37,19 @@ if [[ ${#MISSING[@]} -gt 0 ]]; then
   for var in "${MISSING[@]}"; do echo "  - $var"; done
   exit 1
 fi
+
+# Build a minimal .env containing only the variables each template needs.
+# This avoids passing large/complex values (e.g. SSH keys) to substitute_env.sh
+# which can trigger regex backtracking on unrelated lines.
+write_minimal_env() {
+  local tmp_env="$1"; shift
+  : > "$tmp_env"
+  for var in "$@"; do
+    local val
+    val=$(get_env_value "$var")
+    printf '%s="%s"\n' "$var" "$val" >> "$tmp_env"
+  done
+}
 
 echo "==> Creating appdata directories at $APPDATA"
 sudo mkdir -p \
@@ -52,24 +63,27 @@ echo "==> Copying mosquitto.conf"
 sudo cp "$STACK_DIR/config/mosquitto.conf" "$APPDATA/mqtt/config/mosquitto.conf"
 
 echo "==> Substituting zigbee2mqtt configuration"
+write_minimal_env "$TMP_DIR/env.zigbee2mqtt" SLZB06_HOST
 "$SCRIPT_DIR/substitute_env.sh" \
   "$STACK_DIR/config/zigbee2mqtt_configuration.yaml" \
   "$TMP_DIR/zigbee2mqtt_configuration.yaml" \
-  "$ENV_FILE"
+  "$TMP_DIR/env.zigbee2mqtt"
 sudo cp "$TMP_DIR/zigbee2mqtt_configuration.yaml" "$APPDATA/zigbee2mqtt/configuration.yaml"
 
 echo "==> Substituting Home Assistant configuration"
+write_minimal_env "$TMP_DIR/env.ha" CADDY_OFFICE_PREFIX
 "$SCRIPT_DIR/substitute_env.sh" \
   "$STACK_DIR/config/ha_configuration.yaml" \
   "$TMP_DIR/ha_configuration.yaml" \
-  "$ENV_FILE"
+  "$TMP_DIR/env.ha"
 sudo cp "$TMP_DIR/ha_configuration.yaml" "$APPDATA/homeassistant/configuration.yaml"
 
 echo "==> Generating docker-compose.homeassistant.yml"
+write_minimal_env "$TMP_DIR/env.compose" TZ DOCKERLOGGING_MAXFILE DOCKERLOGGING_MAXSIZE
 "$SCRIPT_DIR/substitute_env.sh" \
   "$STACK_DIR/template.yaml" \
   "$PARENT_DIR/docker-compose.homeassistant.yml" \
-  "$ENV_FILE"
+  "$TMP_DIR/env.compose"
 
 echo ""
 echo "Done. To deploy:"
