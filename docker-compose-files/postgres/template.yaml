@@ -1,15 +1,8 @@
-# Synology DS920+ Compatible Configuration
-# Note: CPU limits removed due to kernel lacking CPU CFS scheduler support
-# Memory limits are supported and configured below
-
 services:
   postgres:
     image: postgres:17-alpine
     container_name: postgres
     restart: unless-stopped
-    labels:
-      - "com.synology.stack=database"
-      - "com.synology.service=postgres"
     environment:
       TZ: {{TZ}}
       POSTGRES_USER: {{POSTGRES_USER}}
@@ -48,9 +41,6 @@ services:
     image: dpage/pgadmin4:9.2.0
     container_name: pgadmin
     restart: unless-stopped
-    labels:
-      - "com.synology.stack=database"
-      - "com.synology.service=pgadmin"
     environment:
       TZ: {{TZ}}
       PGADMIN_DEFAULT_EMAIL: {{PGADMIN_EMAIL}}
@@ -92,5 +82,3 @@ networks:
   postgres_network:
     driver: bridge
     name: postgres_network
-    labels:
-      - "com.synology.network=database"

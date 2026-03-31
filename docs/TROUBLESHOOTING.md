@@ -136,7 +136,7 @@ Symptoms:
 
 Cause:
 
-- `network_mode: service:gluetun` can fail during single-service recreate/update flows on some Synology setups.
+- `network_mode: service:gluetun` can fail during single-service recreate/update flows on some Docker setups.
 
 Fix:
 

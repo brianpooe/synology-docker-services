@@ -15,7 +15,7 @@ This guide focuses on internal networking and 10GbE LAN performance.
 | Netgate 1100 / pfSense | UDM Pro | Replace |
 | UB-USW-LITE-8-POE (core role) | USW-Aggregation (core role) | Replace core role |
 | UB-USW-LITE-8-POE (removed) | UB-USW-LITE-8-POE (access/PoE role) | Keep + repurpose |
-| Synology DS920+ (primary NAS) | UGREEN DXP8800 Plus (primary NAS) | Replace primary role |
+| DS920+ (primary NAS) | UGREEN DXP8800 Plus (primary NAS) | Replace primary role |
 | DS920+ (optional) | DS920+ (backup/secondary role) | Keep optional |
 
 ## 3. Target Topology (MermaidJS)

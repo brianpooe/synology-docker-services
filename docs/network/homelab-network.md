@@ -37,7 +37,7 @@ Rendered exports:
 | Family and Media have explicit reverse-proxy access rule | TCP pass rules from Family/Media to reverse proxy host (`CADDY_HOST`) | `config-pfSense.home.arpa-20260321225944.xml` (`<filter>`) | High |
 | IoT and Guest are isolated from other private networks except explicit rules | `Block access to other networks` (RFC1918) + own-subnet + DNS + internet pass ordering | `config-pfSense.home.arpa-20260321225944.xml` (`<filter>`) | High |
 | Core infrastructure static mappings on LAN exist | USW Lite 8, Mac mini, U6 LR, and TL-SG1016DE have static mappings on LAN | `config-pfSense.home.arpa-20260321225944.xml` (`<dhcpd><lan>`) | High |
-| Caddy and DS920+ are statically mapped on Office VLAN | Reverse proxy (`10.10.0.5`) and DS920+ (`10.10.0.24`) mapped in Office subnet example | `config-pfSense.home.arpa-20260321225944.xml` (`<dhcpd><opt2>`) | High |
+| Caddy and NAS are statically mapped on Office VLAN | Reverse proxy (`10.10.0.5`) and NAS (`10.10.0.24`) mapped in Office subnet example | `config-pfSense.home.arpa-20260321225944.xml` (`<dhcpd><opt2>`) | High |
 | Published reverse-proxy naming uses safe domain examples | `home.example.com` in templates | `.env.sample`, `caddy/Caddyfile_template` | High |
 
 ## 2. Device Inventory
@@ -52,7 +52,7 @@ Rendered exports:
 | Raspberry Pi 4 Model B (2GB) | Technitium DNS/ad-block host | Static mapping `dns01` on AdBlock VLAN as `10.60.0.5` example |
 | Mac mini | Endpoint on core switch/LAN | Static mapping on LAN as `10.1.0.6` example |
 | Intel NUC | Homelab endpoint | User-confirmed static IP on Office VLAN (public-safe value not published here) |
-| Synology DS920+ | NAS/homelab service host | Static mapping in Office VLAN as `10.10.0.24` example |
+| DS920+ NAS | NAS/homelab service host | Static mapping in Office VLAN as `10.10.0.24` example |
 | Office reverse proxy host (Caddy) | Controlled cross-VLAN ingress target | Alias `CADDY_HOST`; static mapping in Office VLAN as `10.10.0.5` example |
 | Family/Guest/IoT wireless clients | Client groups on AP | Family and other client DHCP scopes verified |
 | Media clients | TV/Apple TV/soundbar class clients | Media VLAN DHCP scope and static TV entry verified |
@@ -71,7 +71,7 @@ Physical path (left-to-right):
    - Raspberry Pi 4 (Technitium DNS)
 6. Downstream endpoints:
    - Media clients via TL-SG108
-   - Office/homelab endpoints via TL-SG1016DE (including DS920+, other infra)
+   - Office/homelab endpoints via TL-SG1016DE (including NAS, other infra)
    - Wireless Family/Guest/IoT clients via U6 LR
 
 Physical/logical clarification:
@@ -84,7 +84,7 @@ Netgate internal switch implementation details are intentionally abstracted in t
 | VLAN | Purpose | CIDR (public-safe) | Typical residents |
 |---|---|---|---|
 | LAN | Core local management/client segment | `10.1.0.0/24` | Switch/AP management, Mac mini, baseline LAN clients |
-| Office | Admin/workstation + homelab services | `10.10.0.0/24` | Caddy reverse proxy, DS920+, Proxmox-related services |
+| Office | Admin/workstation + homelab services | `10.10.0.0/24` | Caddy reverse proxy, NAS, Proxmox-related services |
 | Family | Family user segment | `10.20.0.0/24` | Family wireless devices |
 | IoT | IoT isolation segment | `10.30.0.0/24` | IoT clients |
 | Media | Media device segment | `10.40.0.0/24` | TV/media devices |

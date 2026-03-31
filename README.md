@@ -1,4 +1,4 @@
-# Synology Docker Services
+# Homelab Docker Services
 
 Docker Compose templates for home lab services, featuring security best practices, resource management, and comprehensive health monitoring.
 
@@ -175,13 +175,12 @@ docker-compose -f docker-compose.<stack>.yml up -d
 ## 📋 Prerequisites
 
 ### Required
-- Synology NAS with DSM 7.x
-- Docker & Docker Compose installed via Package Center
+- Linux host with Docker & Docker Compose installed
 - SSH access enabled
 - Basic knowledge of Docker and command line
 
 ### Recommended
-- Static IP for your NAS
+- Static IP for your host
 - Domain name for reverse proxy (optional)
 - VPN subscription for Gluetun (AirVPN, Mullvad, etc.)
 
@@ -249,7 +248,6 @@ PGADMIN_PASSWORD=strong_password
 
 **Get your PUID/PGID:**
 ```bash
-ssh admin@synology-nas
 id $USER
 ```
 
@@ -374,7 +372,7 @@ Total resources if all services running:
 
 | Resource | Reserved | Limit | Notes |
 |----------|----------|-------|-------|
-| Memory | 4.00 GB | 15.00 GB | CPU limits are intentionally omitted for DSM compatibility |
+| Memory | 4.00 GB | 15.00 GB | CPU limits are intentionally omitted |
 
 **Per-service limits configured to prevent resource exhaustion**
 
@@ -517,7 +515,7 @@ If upgrading from previous configurations:
 - ✅ Regularly update containers
 
 ### Performance
-- ✅ Adjust resource limits based on your NAS specs
+- ✅ Adjust resource limits based on your host specs
 - ✅ Monitor with `docker stats`
 - ✅ Use SSD for Docker volumes if possible
 - ✅ Enable hardware transcoding in Emby/Jellyfin
@@ -564,4 +562,4 @@ This project is provided as-is for personal and educational use.
 
 **Last Updated:** 2026-02-14
 **Version:** 2.1
-**Compatibility:** Synology DSM 7.x, Docker Compose 1.27.0+
+**Compatibility:** Docker Compose 1.27.0+

@@ -3,9 +3,6 @@ services:
     image: technitium/dns-server:latest
     container_name: technitium-dns
     restart: unless-stopped
-    labels:
-      - "com.synology.stack=network"
-      - "com.synology.service=technitium-dns"
     environment:
       TZ: "{{TZ}}"
       # Domain shown in Technitium UI defaults

@@ -1,15 +1,8 @@
-# Synology DS920+ Compatible Configuration
-# Note: CPU limits removed due to kernel lacking CPU CFS scheduler support
-# Memory limits are supported and configured below
-
 services:
   vault:
     image: hashicorp/vault:1.19.2
     container_name: vault
     restart: unless-stopped
-    labels:
-      - "com.synology.stack=security"
-      - "com.synology.service=secrets-manager"
     ports:
       - "8200:8200"
       - "8201:8201"
@@ -50,5 +43,4 @@ networks:
   vault_network:
     driver: bridge
     name: vault_network
-    labels:
-      - "com.synology.network=security"
+
