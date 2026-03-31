@@ -79,12 +79,21 @@ fi
 render_template() {
     local source="$1"
     local target="$2"
-    local line full key default replacement has_default
+    local line full key default replacement has_default rest rendered before
 
     : >"$target"
 
     while IFS= read -r line || [[ -n "$line" ]]; do
-        while [[ "$line" =~ \{\{([A-Za-z_][A-Za-z0-9_]*)(:-([^}]*))?\}\} ]]; do
+        # In YAML templates, ignore full-line comments so commented placeholders
+        # do not require env values.
+        if [[ "$source" =~ \.ya?ml$ && "$line" =~ ^[[:space:]]*# ]]; then
+            printf '%s\n' "$line" >>"$target"
+            continue
+        fi
+
+        rest="$line"
+        rendered=""
+        while [[ "$rest" =~ \{\{([A-Za-z_][A-Za-z0-9_]*)(:-([^}]*))?\}\} ]]; do
             full="${BASH_REMATCH[0]}"
             key="${BASH_REMATCH[1]}"
             has_default="${BASH_REMATCH[2]-}"
@@ -98,8 +107,11 @@ render_template() {
                 replacement="$full"
             fi
 
-            line="${line/$full/$replacement}"
+            before="${rest%%"$full"*}"
+            rendered+="$before$replacement"
+            rest="${rest#*"$full"}"
         done
+        line="$rendered$rest"
         printf '%s\n' "$line" >>"$target"
     done <"$source"
 }
@@ -111,7 +123,11 @@ mv "$TMP_OUTPUT" "$OUTPUT_FILE"
 trap - EXIT
 
 # 4. Final validation: check for unreplaced placeholders
-MISSING_VARS="$(grep -oE '\{\{[A-Za-z_][A-Za-z0-9_]*(:-[^}]*)?\}\}' "$OUTPUT_FILE" | sort -u || true)"
+if [[ "$SOURCE_FILE" =~ \.ya?ml$ ]]; then
+    MISSING_VARS="$(awk '!/^[[:space:]]*#/' "$OUTPUT_FILE" | grep -oE '\{\{[A-Za-z_][A-Za-z0-9_]*(:-[^}]*)?\}\}' | sort -u || true)"
+else
+    MISSING_VARS="$(grep -oE '\{\{[A-Za-z_][A-Za-z0-9_]*(:-[^}]*)?\}\}' "$OUTPUT_FILE" | sort -u || true)"
+fi
 
 if [[ -n "$MISSING_VARS" ]]; then
     echo "--------------------------------------------------------"
