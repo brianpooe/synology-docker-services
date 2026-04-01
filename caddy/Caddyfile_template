@@ -165,12 +165,12 @@ sonarr.{{CADDY_BASE_DOMAIN:-home.example.com}} {
 #       - <caddy-host-ip>
 ha.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.X:8123
+    reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.6:8123
 }
 
 z2m.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
-    reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.X:8080
+    reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.6:8080
 }
 
 #### Proxmox Apps
