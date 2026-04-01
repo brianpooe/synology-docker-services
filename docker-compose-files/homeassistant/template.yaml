@@ -9,7 +9,7 @@
 # need to configure devices by IP address manually, or run HA with network_mode: host
 # (which breaks container-name routing — you'd then use localhost for MQTT/Z2M instead).
 #
-# Zigbee coordinator: SMLIGHT SLZB-06U over PoE+ (network-based, Silicon Labs EFR32 / Ember)
+# Zigbee coordinator: SMLIGHT SLZB-06U over PoE+ (network-based, TI CC2652 / zStack)
 #   The coordinator connects via TCP — no USB passthrough needed.
 #   Set SLZB06_HOST in your .env to the coordinator's static IP.
 #

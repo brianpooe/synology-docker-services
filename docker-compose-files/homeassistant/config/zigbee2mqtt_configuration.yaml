@@ -17,10 +17,9 @@ mqtt:
 serial:
   # SLZB-06U connects over the network via TCP (PoE+ mode — no USB needed)
   # Assign a static IP or DHCP reservation to the coordinator for a stable address
-  # Default coordinator port is 6638
+  # Default coordinator TCP serial port is 6638
   port: tcp://{{SLZB06_HOST}}:6638
-  adapter: ember             # Silicon Labs EFR32 (Ember/EZSP protocol)
-                             # 'ember' is the correct name in zigbee2mqtt 2.x (was 'ezsp' in 1.x)
+  adapter: zstack            # SLZB-06U uses TI CC2652 (zStack)
 
 frontend:
   port: 8080
