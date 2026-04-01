@@ -6,7 +6,10 @@
 (common) {
     tls {{CADDY_TLS_EMAIL:-admin@example.com}} {
         dns cloudflare {env.CLOUDFLARE_DNS_TOKEN}
-        resolvers 1.1.1.1 1.0.0.1
+        # Use system resolvers from /etc/resolv.conf.
+        # In segmented networks, this avoids DNS-01 failures when public resolvers are blocked.
+        # If needed, pin a reachable internal resolver:
+        # resolvers 10.60.0.5
     }
     header {
         # Enable HSTS

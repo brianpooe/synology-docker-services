@@ -220,6 +220,28 @@ If Caddy refuses to start, validate syntax first:
 caddy validate --config caddy/Caddyfile
 ```
 
+If certificate issuance fails with errors like:
+
+- `could not determine zone for domain ...`
+- `dial tcp 1.0.0.1:53: i/o timeout`
+
+then DNS-01 challenge resolution cannot reach the configured resolver from the Caddy host.
+Check DNS reachability from the Caddy host:
+
+```bash
+dig SOA home.example.com @1.1.1.1
+dig SOA home.example.com @<your-internal-dns-ip>
+```
+
+If public resolvers are blocked on your VLAN/firewall, use system DNS (`/etc/resolv.conf`) or set a reachable internal resolver in your Caddy TLS block:
+
+```caddy
+tls you@example.com {
+  dns cloudflare {env.CLOUDFLARE_DNS_TOKEN}
+  resolvers <your-internal-dns-ip>
+}
+```
+
 If a proxied app fails over HTTPS with self-signed backend certs, ensure the target block uses:
 
 ```caddy
