@@ -6,10 +6,10 @@
 (common) {
     tls {{CADDY_TLS_EMAIL:-admin@example.com}} {
         dns cloudflare {env.CLOUDFLARE_DNS_TOKEN}
-        # Use system resolvers from /etc/resolv.conf.
-        # In segmented networks, this avoids DNS-01 failures when public resolvers are blocked.
-        # If needed, pin a reachable internal resolver:
-        # resolvers 10.60.0.5
+        # DNS-01 must see the public Cloudflare zone, not the internal Technitium split-DNS zone.
+        # Keep the pfSense Office forced-DNS exception for CADDY_HOST so these queries are not
+        # redirected back to Technitium.
+        resolvers 1.1.1.1 1.0.0.1
     }
     header {
         # Enable HSTS

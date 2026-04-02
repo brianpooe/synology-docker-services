@@ -233,14 +233,22 @@ dig SOA home.example.com @1.1.1.1
 dig SOA home.example.com @<your-internal-dns-ip>
 ```
 
-If public resolvers are blocked on your VLAN/firewall, use system DNS (`/etc/resolv.conf`) or set a reachable internal resolver in your Caddy TLS block:
+If this is a split-DNS environment where Technitium is authoritative for an internal subzone
+like `home.example.com`, do not point Caddy at that internal resolver for ACME. Caddy must see
+the public authority chain for the parent zone, otherwise Cloudflare zone detection fails with
+`expected 1 zone, got 0`.
+
+Use public resolvers in your Caddy TLS block:
 
 ```caddy
 tls you@example.com {
   dns cloudflare {env.CLOUDFLARE_DNS_TOKEN}
-  resolvers <your-internal-dns-ip>
+  resolvers 1.1.1.1 1.0.0.1
 }
 ```
+
+If your VLAN uses forced DNS redirection, exclude the Caddy host from that NAT rule so its
+queries to the public resolvers are not redirected back to the internal split-DNS server.
 
 If a proxied app fails over HTTPS with self-signed backend certs, ensure the target block uses:
 

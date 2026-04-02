@@ -94,6 +94,7 @@ nslookup switchlite8poe.home.example.com 10.60.0.5
 - If Caddy ACME DNS-01 fails with `expected 1 zone, got 0 for home.example.com`, your forced-DNS NAT is likely intercepting Caddy's resolver lookups.
   - Add `CADDY_HOST` alias and exclude it in the forced DNS NAT rule on Caddy's interface (source `!CADDY_HOST`, source port `any`).
   - Keep destination invert `!LOCAL_DNS`, destination port `53`, redirect to `LOCAL_DNS:53`.
+  - If Technitium is authoritative for the internal `home.example.com` zone, do not set Caddy's ACME resolver to `10.60.0.5`; use public resolvers such as `1.1.1.1`/`1.0.0.1` instead.
   - See: [pfsense-forced-dns-all-vlans.md](./pfsense-forced-dns-all-vlans.md)
 - If `http://<DNS_BIND_IP>:5380` is refused, run:
 ```bash
