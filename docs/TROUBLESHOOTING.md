@@ -222,23 +222,32 @@ caddy validate --config caddy/Caddyfile
 
 If certificate issuance fails with errors like:
 
-- `could not determine zone for domain ...`
+- `could not determine zone for domain ...` / `expected 1 zone, got 0`
 - `dial tcp 1.0.0.1:53: i/o timeout`
 
-then DNS-01 challenge resolution cannot reach the configured resolver from the Caddy host.
+these are two distinct failure modes with the same underlying cause: Caddy's DNS-01 resolver
+cannot reach `1.1.1.1`/`1.0.0.1` on port 53.
+
+**Distinguish the two errors:**
+
+| Error | Meaning |
+|---|---|
+| `expected 1 zone, got 0` | Caddy reached a resolver, but it was Technitium (split-DNS). NAT exception misconfigured or alias IP wrong. |
+| `dial tcp 1.0.0.1:53: i/o timeout` | Caddy's packets are being dropped. A firewall block rule on OPT2 is above the pass rule, or the NAT exception is not set up at all. |
+
 Check DNS reachability from the Caddy host:
 
 ```bash
-dig SOA home.example.com @1.1.1.1
-dig SOA home.example.com @<your-internal-dns-ip>
+# Must return Cloudflare SOA, not Technitium SOA (dns01.home.example.com)
+dig +short SOA home.example.com @1.1.1.1
+
+# Distinguish firewall drop from redirect:
+dig @1.1.1.1 +tcp +time=5 google.com   # timeout = firewall drop
+dig @1.1.1.1 +notcp +time=5 google.com # timeout = same; success = TCP-specific block
 ```
 
-If this is a split-DNS environment where Technitium is authoritative for an internal subzone
-like `home.example.com`, do not point Caddy at that internal resolver for ACME. Caddy must see
-the public authority chain for the parent zone, otherwise Cloudflare zone detection fails with
-`expected 1 zone, got 0`.
-
-Use public resolvers in your Caddy TLS block:
+Keep public resolvers in the Caddy TLS block — do not switch to Technitium as a workaround,
+as it causes `expected 1 zone, got 0` because Technitium is authoritative for the internal zone:
 
 ```caddy
 tls you@example.com {
@@ -247,8 +256,18 @@ tls you@example.com {
 }
 ```
 
-If your VLAN uses forced DNS redirection, exclude the Caddy host from that NAT rule so its
-queries to the public resolvers are not redirected back to the internal split-DNS server.
+If your VLAN uses forced DNS redirection, two pfSense changes are both required:
+
+1. **NAT source-invert exception** on OPT2 — edit the `Force DNS to LOCAL_DNS (OFFICE)` rule,
+   set Source → Invert Match = **checked**, Source = `CADDY_HOST`. The `Invert Match` checkbox
+   is critical and easy to miss; leaving it unchecked reverses the logic entirely.
+
+2. **Explicit PASS rule** on `Firewall > Rules > OPT2`, placed above any block rules:
+   Source = `CADDY_HOST`, Destination = any, Port = DNS (53), Action = Pass.
+   Without this, a block rule above the general `allow any` will drop Caddy's packets even
+   when the NAT exception is correctly configured, producing the `i/o timeout` error.
+
+See: [pfsense-forced-dns-quick-entry.md](../dns/pfsense-forced-dns-quick-entry.md) section 1b.
 
 If a proxied app fails over HTTPS with self-signed backend certs, ensure the target block uses:
 

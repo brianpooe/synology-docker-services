@@ -83,7 +83,7 @@ Example rule to edit:
 - `Force DNS to LOCAL_DNS (OFFICE)`
 
 Set:
-- Source: `Invert Match` = checked
+- Source: `Invert Match` = **checked** ← easy to miss; unchecked inverts the intent entirely
 - Source type/value: `Address or Alias` = `CADDY_HOST`
 - Source Port: `any` to `any` (do not set `DNS`)
 - Destination: keep `Invert Match` checked and `LOCAL_DNS`
@@ -94,6 +94,27 @@ Root cause this prevents:
 - Forced DNS NAT can intercept Caddy's resolver lookups to public resolvers.
 - In split-DNS environments, this makes Caddy see local zone `home.example.com` instead of public authority chain.
 - Cloudflare DNS plugin then fails zone detection with `expected 1 zone, got 0 for home.example.com`.
+
+## Step 3c: Add explicit PASS rule for Caddy DNS egress (required companion to 3b)
+Path: `Firewall > Rules > OPT2`
+
+The NAT source-invert exception (step 3b) stops the redirect but does not itself permit the
+traffic. Any block rule above the general `allow any` on OPT2 will drop Caddy's outbound
+port-53 packets, producing `dial tcp 1.0.0.1:53: i/o timeout` in Caddy logs even when the NAT
+exception is correctly configured.
+
+Add a rule **at the top of the OPT2 rule list**, above any block rules:
+
+| Field | Value |
+|---|---|
+| Action | Pass |
+| Interface | OPT2 |
+| Protocol | TCP/UDP |
+| Source | `CADDY_HOST` |
+| Source port | any |
+| Destination | any |
+| Destination port | DNS (53) |
+| Description | `Allow Caddy DNS to public resolvers for ACME DNS-01` |
 
 ## Step 4: Apply changes
 - Save and `Apply Changes` in NAT and Rules tabs.

@@ -112,27 +112,54 @@ Do not add this redirect on `OPT7` (DNS server VLAN).
 ## 1b) Exception for Caddy ACME DNS-01 traffic (important)
 If Caddy is using DNS-01 challenges with Cloudflare, exclude the Caddy host from forced DNS redirect on the interface where Caddy lives (for this setup, `OFFICE` / `OPT2`).
 
+### Part 1: NAT source-invert exception
 Edit rule:
 - `Force DNS to LOCAL_DNS (OFFICE)`
 
 Set:
-- Source: `Invert Match` = checked
+- Source: `Invert Match` = **checked** ← easy to miss; unchecked inverts the intent entirely
 - Source type/value: `Address or Alias` = `CADDY_HOST`
 - Source Port: `any` to `any` (do not set `DNS` here)
 - Destination: keep `Invert Match` checked and `LOCAL_DNS`
 - Destination Port: keep `DNS (53)`
 - Redirect target IP/Port: keep `LOCAL_DNS:53`
 
+### Part 2: Explicit PASS rule on OPT2 firewall rules (required companion)
+The NAT exception stops the redirect, but a firewall PASS rule must also exist to allow Caddy's
+DNS traffic to egress to public resolvers. Without it, any block rule higher in the OPT2 rule
+list will drop the packets and produce `dial tcp 1.0.0.1:53: i/o timeout` in Caddy logs.
+
+In `Firewall > Rules > OPT2`, add a rule **above any block rules**:
+
+| Field | Value |
+|---|---|
+| Action | Pass |
+| Interface | OPT2 |
+| Protocol | TCP/UDP |
+| Source | `CADDY_HOST` |
+| Source port | any |
+| Destination | any |
+| Destination port | DNS (53) |
+| Description | `Allow Caddy DNS to public resolvers for ACME DNS-01` |
+
 Why this is needed:
-- Without this exception, pfSense intercepts Caddy's outbound DNS lookups (even when targeting public resolvers like `1.1.1.1`) and redirects them to local Technitium.
+- Without this exception, pfSense intercepts Caddy's outbound DNS lookups (even when targeting
+  public resolvers like `1.1.1.1`) and redirects them to local Technitium.
 - Caddy then sees local split-DNS zone `home.example.com`, but Cloudflare only has public zone `example.com`.
-- ACME fails with: `expected 1 zone, got 0 for home.example.com`.
+- ACME fails with `expected 1 zone, got 0 for home.example.com` (wrong resolver) or
+  `dial tcp 1.0.0.1:53: i/o timeout` (firewall block).
 
 Validation from Caddy host:
 ```bash
+# Must return Cloudflare SOA, not Technitium SOA
 dig +short SOA home.example.com @1.1.1.1
+
+# Quick connectivity check
+dig @1.1.1.1 +tcp +time=5 google.com
+dig @1.0.0.1 +tcp +time=5 google.com
 ```
-- This should not return Technitium SOA (`dns01.home.example.com ...`) once the exception is active.
+- Technitium SOA looks like: `dns01.home.example.com. ...` → NAT exception not working.
+- `i/o timeout` → firewall PASS rule missing or misplaced.
 
 ## 2) Rule order checks (critical)
 
