@@ -176,7 +176,7 @@ z2m.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.6:8080
 }
 
-nodered.{{CADDY_BASE_DOMAIN:-home.example.com}} {
+node-red.{{CADDY_BASE_DOMAIN:-home.example.com}} {
     import common
     reverse_proxy {{CADDY_IOT_PREFIX:-10.30.0}}.6:1880
 }
