@@ -24,7 +24,7 @@
 services:
   node-red:
     build:
-      context: ./docker-compose-files/node-red
+      context: {{NODE_RED_BUILD_CONTEXT}}
     image: node-red-ha:local
     container_name: node-red
     restart: unless-stopped

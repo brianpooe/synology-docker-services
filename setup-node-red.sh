@@ -71,7 +71,12 @@ write_minimal_env "$TMP_DIR/env.settings" NODE_RED_CREDENTIAL_SECRET
 sudo cp "$TMP_DIR/settings.js" "$APPDATA/node-red/settings.js"
 
 echo "==> Generating docker-compose.node-red.yml"
+# NODE_RED_BUILD_CONTEXT is the absolute path to the Dockerfile directory.
+# It is injected at generation time so docker compose can find the Dockerfile
+# regardless of which directory the compose file is run from.
+NODE_RED_BUILD_CONTEXT="$STACK_DIR"
 write_minimal_env "$TMP_DIR/env.compose" TZ HA_URL HA_TOKEN DOCKERLOGGING_MAXFILE DOCKERLOGGING_MAXSIZE
+printf 'NODE_RED_BUILD_CONTEXT="%s"\n' "$NODE_RED_BUILD_CONTEXT" >> "$TMP_DIR/env.compose"
 "$SCRIPT_DIR/substitute_env.sh" \
   "$STACK_DIR/template.yaml" \
   "$PARENT_DIR/docker-compose.node-red.yml" \
