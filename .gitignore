@@ -228,5 +228,6 @@ docker-compose-files/**/*
 !docker-compose-files/**/*_template.*
 !docker-compose-files/**/template.*
 !docker-compose-files/**/config/**
+!docker-compose-files/**/Dockerfile
 
 # End of https://www.toptal.com/developers/gitignore/api/webstorm+all,webstorm,linux,macos
