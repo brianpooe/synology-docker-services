@@ -5,6 +5,7 @@
 
 # Required for Caddy reverse proxy — trusts X-Forwarded-For headers from Caddy.
 # Caddy is statically mapped at .5 on the Office VLAN.
+mobile_app:
 http:
   use_x_forwarded_for: true
   trusted_proxies:
