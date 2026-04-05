@@ -14,7 +14,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 get_env_value() {
   local key="$1"
   local line value
-  line=$(grep -E "^${key}=" "$ENV_FILE" 2>/dev/null | head -1) || true
+  line=$(grep -E "^${key}=" "$ENV_FILE" 2>/dev/null | tail -1) || true
   value="${line#*=}"
   if [[ "$value" =~ ^\"(.*)\"[[:space:]]*(#.*)?$ ]]; then
     value="${BASH_REMATCH[1]}"
