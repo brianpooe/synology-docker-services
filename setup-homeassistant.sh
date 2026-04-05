@@ -68,7 +68,15 @@ write_minimal_env "$TMP_DIR/env.zigbee2mqtt" SLZB06_HOST
   "$STACK_DIR/config/zigbee2mqtt_configuration.yaml" \
   "$TMP_DIR/zigbee2mqtt_configuration.yaml" \
   "$TMP_DIR/env.zigbee2mqtt"
-sudo cp "$TMP_DIR/zigbee2mqtt_configuration.yaml" "$APPDATA/zigbee2mqtt/configuration.yaml"
+# Only copy on first-time setup — Z2M replaces GENERATE with real pan_id/network_key
+# on first run and saves them back to this file. Overwriting it would cause a
+# configuration-adapter mismatch on next restart.
+if [[ ! -f "$APPDATA/zigbee2mqtt/configuration.yaml" ]]; then
+  sudo cp "$TMP_DIR/zigbee2mqtt_configuration.yaml" "$APPDATA/zigbee2mqtt/configuration.yaml"
+  echo "    Copied zigbee2mqtt configuration (first-time setup)"
+else
+  echo "    Skipped zigbee2mqtt configuration (already exists — preserving live config with real pan_id/network_key)"
+fi
 
 echo "==> Substituting Home Assistant configuration"
 write_minimal_env "$TMP_DIR/env.ha" CADDY_OFFICE_PREFIX
